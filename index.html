@@ -1,1 +1,209 @@
-<html>hello</html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANHMAKE</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6QG880FELE"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-6QG880FELE');
+</script>    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .logo {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 3rem;
+        }
+
+        .company-name {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #1e293b;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .tool-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .tool-card.available {
+            border-color: #10b981;
+        }
+
+        .tool-card.available:hover {
+            border-color: #059669;
+        }
+
+        .tool-card.coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .tool-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-available {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-coming-soon {
+            background: #64748b;
+            color: white;
+        }
+
+        .tool-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .tool-card p {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .btn-tool {
+            padding: 0.75rem 1.5rem;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-tool:hover {
+            background: #2563eb;
+        }
+
+        .btn-tool.disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+
+        .contact {
+            margin-top: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .contact a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .contact a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .company-name {
+                font-size: 2rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="logo.png" alt="ANHMAKE" class="logo">
+        
+        <h1 class="company-name">ANHMAKE</h1>
+
+        <div class="tools-grid">
+            <div class="tool-card available" onclick="window.open('./excel/', '_blank')">
+                <div class="tool-status status-available">사용 가능</div>
+                <h3>Excel 파일 병합 도구</h3>
+                <p>여러 Excel 파일을 하나로 병합하고 중복 데이터를 제거합니다.</p>
+                <a href="./excel/" class="btn-tool" onclick="event.stopPropagation()">사용하기</a>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-status status-coming-soon">준비 중</div>
+                <h3>데이터 분석 도구</h3>
+                <p>CSV 및 Excel 데이터를 분석하고 시각화합니다.</p>
+                <span class="btn-tool disabled">준비 중</span>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-status status-coming-soon">준비 중</div>
+                <h3>파일 변환 도구</h3>
+                <p>다양한 파일 형식 간 변환을 지원합니다.</p>
+                <span class="btn-tool disabled">준비 중</span>
+            </div>
+        </div>
+
+        <div class="contact">
+            문의: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
+        </div>
+    </div>
+</body>
+</html>
