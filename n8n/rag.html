@@ -59,6 +59,64 @@
             background: #4b5563;
         }
 
+        .add-resource-section {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .add-resource-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .add-btn {
+            padding: 0.75rem 1.5rem;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #059669;
+        }
+
         .resources-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -110,6 +168,21 @@
             background: #10b981;
         }
 
+        .delete-btn {
+            padding: 0.25rem 0.5rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
         .resource-content {
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
@@ -124,100 +197,24 @@
             overflow-y: auto;
         }
 
-        .add-resource-section {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
+        .download-json {
+            text-align: center;
+            margin-top: 2rem;
         }
 
-        .add-resource-section h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #1e293b;
-        }
-
-        .version-info {
-            text-align: right;
-            margin-bottom: 1rem;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .reset-btn {
+        .download-btn {
             padding: 0.5rem 1rem;
-            background: #ef4444;
+            background: #8b5cf6;
             color: white;
             border: none;
             border-radius: 0.5rem;
             font-size: 0.875rem;
             cursor: pointer;
             transition: background-color 0.3s;
-            margin-left: 1rem;
         }
 
-        .reset-btn:hover {
-            background: #dc2626;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #374151;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-            min-height: 150px;
-        }
-
-        .add-btn {
-            padding: 0.75rem 1.5rem;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .add-btn:hover {
-            background: #059669;
-        }
-
-        .delete-btn {
-            padding: 0.25rem 0.5rem;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            cursor: pointer;
-            margin-left: 0.5rem;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
+        .download-btn:hover {
+            background: #7c3aed;
         }
 
         @media (max-width: 768px) {
@@ -246,80 +243,74 @@
             <p>Store and manage RAG-related prompts, code snippets, and configuration data</p>
         </div>
 
-        <div class="version-info">
-            Version: <span id="currentVersion">1.0</span>
-            <button class="reset-btn" onclick="resetToDefaults()">Reset to Defaults</button>
-        </div>
-
         <div class="add-resource-section">
             <h3>Add New RAG Resource</h3>
             <form id="addResourceForm">
                 <div class="form-group">
                     <label for="resourceTitle">Title</label>
-                    <input type="text" id="resourceTitle" placeholder="Enter resource title (e.g., System Prompt, API Config)" required>
+                    <input type="text" id="resourceTitle" placeholder="Enter resource title" required>
                 </div>
                 <div class="form-group">
                     <label for="resourceContent">Content</label>
-                    <textarea id="resourceContent" placeholder="Enter prompts, configurations, code snippets, or other RAG-related content" required></textarea>
+                    <textarea id="resourceContent" placeholder="Enter prompts, configurations, code snippets" required></textarea>
                 </div>
                 <button type="submit" class="add-btn">Add Resource</button>
             </form>
         </div>
 
         <div id="resourcesGrid" class="resources-grid">
-            <!-- Dynamically generated resource cards -->
+            <!-- Resources loaded dynamically -->
+        </div>
+
+        <div class="download-json">
+            <button class="download-btn" onclick="downloadJSON()">Download JSON (for backup/upload)</button>
         </div>
     </div>
 
     <script>
-        // Version management - UPDATE THIS VERSION WHEN YOU MODIFY DEFAULT DATA
-        const CURRENT_VERSION = '1.0';
-        const VERSION_KEY = 'rag_version';
-        
-        // Manage resources in localStorage
+        // Get filename without extension
+        const currentFile = window.location.pathname.split('/').pop().replace('.html', '');
+        const jsonFile = `${currentFile}.json`;
         const STORAGE_KEY = 'rag_resources';
 
-        // Check version and update if needed
-        function checkVersionAndUpdate() {
-            const storedVersion = localStorage.getItem(VERSION_KEY);
-            if (storedVersion !== CURRENT_VERSION) {
-                console.log(`Version update detected: ${storedVersion} → ${CURRENT_VERSION}`);
-                resetToDefaults();
+        // Load resources (try localStorage first, then JSON file)
+        async function loadResources() {
+            // First try localStorage
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored);
             }
-            document.getElementById('currentVersion').textContent = CURRENT_VERSION;
-        }
 
-        // Reset to default data
-        function resetToDefaults() {
-            if (confirm('This will reset all your custom data to the default resources. Are you sure?')) {
-                localStorage.removeItem(STORAGE_KEY);
-                localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
-                renderResources();
-                alert('Data has been reset to defaults.');
+            // Fallback to JSON file
+            try {
+                const response = await fetch(jsonFile);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Save to localStorage for editing
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    return data;
+                }
+            } catch (error) {
+                console.error('Error loading JSON:', error);
             }
-        }
 
-        // Get default resources - EMPTY BY DEFAULT, ADD YOUR CONTENT HERE
-        function getDefaultResources() {
             return [];
         }
 
-        // Load initial data
-        function loadResources() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : getDefaultResources();
-        }
-
-        // Save resources
+        // Save resources to localStorage
         function saveResources(resources) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
         }
 
         // Render resources
-        function renderResources() {
-            const resources = loadResources();
+        function renderResources(resources) {
             const grid = document.getElementById('resourcesGrid');
             
+            if (resources.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; color: #64748b; grid-column: 1/-1;">No resources available</div>';
+                return;
+            }
+
             grid.innerHTML = resources.map(resource => `
                 <div class="resource-card" data-id="${resource.id}">
                     <div class="resource-title">
@@ -336,7 +327,7 @@
 
         // Copy to clipboard
         async function copyToClipboard(resourceId) {
-            const resources = loadResources();
+            const resources = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             const resource = resources.find(r => r.id === resourceId);
             
             if (resource) {
@@ -361,10 +352,10 @@
         // Delete resource
         function deleteResource(resourceId) {
             if (confirm('Are you sure you want to delete this resource?')) {
-                let resources = loadResources();
+                let resources = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
                 resources = resources.filter(r => r.id !== resourceId);
                 saveResources(resources);
-                renderResources();
+                renderResources(resources);
             }
         }
 
@@ -376,16 +367,16 @@
             const content = document.getElementById('resourceContent').value.trim();
             
             if (title && content) {
-                const resources = loadResources();
+                const resources = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
                 const newResource = {
                     id: Date.now(),
                     title: title,
                     content: content
                 };
                 
-                resources.unshift(newResource); // Add to beginning
+                resources.unshift(newResource);
                 saveResources(resources);
-                renderResources();
+                renderResources(resources);
                 
                 // Reset form
                 document.getElementById('resourceTitle').value = '';
@@ -393,9 +384,20 @@
             }
         });
 
-        // Initialize on page load
-        checkVersionAndUpdate();
-        renderResources();
+        // Download JSON
+        function downloadJSON() {
+            const resources = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const dataStr = JSON.stringify(resources, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `${currentFile}.json`;
+            link.click();
+        }
+
+        // Initialize
+        loadResources().then(renderResources);
     </script>
 </body>
 </html>
