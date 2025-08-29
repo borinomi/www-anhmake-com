@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -180,29 +180,36 @@
 
         <div class="tools-grid">
             <div class="tool-card available" onclick="window.open('./excel/', '_blank')">
-                <div class="tool-status status-available">사용 가능</div>
-                <h3>Excel 파일 병합 도구</h3>
-                <p>여러 Excel 파일을 하나로 병합하고 중복 데이터를 제거합니다.</p>
-                <a href="./excel/" class="btn-tool" onclick="event.stopPropagation()">사용하기</a>
+                <div class="tool-status status-available">Available</div>
+                <h3>Excel File Merger Tool</h3>
+                <p>Merge multiple Excel files into one and remove duplicate data.</p>
+                <a href="./excel/" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
             </div>
 
-            <div class="tool-card coming-soon">
-                <div class="tool-status status-coming-soon">준비 중</div>
-                <h3>데이터 분석 도구</h3>
-                <p>CSV 및 Excel 데이터를 분석하고 시각화합니다.</p>
-                <span class="btn-tool disabled">준비 중</span>
+            <div class="tool-card available" onclick="window.open('./n8n/', '_blank')">
+                <div class="tool-status status-available">Available</div>
+                <h3>n8n Resource Board</h3>
+                <p>View and copy n8n workflow-related code and system messages.</p>
+                <a href="./n8n/" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
             </div>
 
-            <div class="tool-card coming-soon">
-                <div class="tool-status status-coming-soon">준비 중</div>
-                <h3>파일 변환 도구</h3>
-                <p>다양한 파일 형식 간 변환을 지원합니다.</p>
-                <span class="btn-tool disabled">준비 중</span>
+            <div class="tool-card available" onclick="window.open('https://gpm.anhmake.com', '_blank')">
+                <div class="tool-status status-available">Available</div>
+                <h3>GPM - Chrome Extension</h3>
+                <p>Chrome extension for Facebook group post management.</p>
+                <a href="https://gpm.anhmake.com" class="btn-tool" onclick="event.stopPropagation()" target="_blank">Use Tool</a>
+            </div>
+
+            <div class="tool-card available" onclick="window.open('https://gpm2.anhmake.com', '_blank')">
+                <div class="tool-status status-available">Available</div>
+                <h3>GPM2 - Web App</h3>
+                <p>Facebook group post manager web application.</p>
+                <a href="https://gpm2.anhmake.com" class="btn-tool" onclick="event.stopPropagation()" target="_blank">Use Tool</a>
             </div>
         </div>
 
         <div class="contact">
-            문의: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
+            Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
         </div>
     </div>
 </body>

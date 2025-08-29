@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Tools - ANHMAKE</title>
+    <title>n8n Tools - ANHMAKE</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -169,23 +169,24 @@
     
     <div class="container">
         <div class="header">
-            <h1>Excel Tools</h1>
-            <p>Powerful Excel file processing and management tools</p>
+            <h1>n8n Tools</h1>
+            <p>Workflow automation tools and resources for n8n</p>
         </div>
 
         <div class="tools-grid">
-            <div class="tool-card available" onclick="window.open('./merger.html', '_blank')">
+
+            <div class="tool-card available" onclick="window.open('./rag.html', '_blank')">
                 <div class="tool-status status-available">Available</div>
-                <h3>File Merger Tool</h3>
-                <p>Merge multiple Excel files into one and remove duplicate data based on a key column.</p>
-                <a href="./merger.html" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
+                <h3>RAG Tool</h3>
+                <p>Retrieval-Augmented Generation tool for AI-powered document processing and generation.</p>
+                <a href="./rag.html" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
             </div>
 
             <div class="tool-card coming-soon">
-                <div class="tool-status status-coming-soon">To Be Updated</div>
+                <div class="tool-status status-coming-soon">Coming Soon</div>
                 <h3>More Tools</h3>
-                <p>Additional Excel processing tools will be added soon.</p>
-                <span class="btn-tool disabled">To Be Updated</span>
+                <p>Additional n8n workflow tools will be added soon.</p>
+                <span class="btn-tool disabled">Coming Soon</span>
             </div>
         </div>
     </div>

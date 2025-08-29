@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel File Merger Tool by ANHMAKE</title>
+    <!-- ExcelJS (styles read/write 지원) -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        #drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 3rem;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        #drop-zone.dragover {
+            border-color: #369;
+            background-color: #f0f8ff;
+        }
+        #file-list {
+            margin-top: 1.5rem;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        #file-list div {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        #merge-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        #merge-button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #merge-button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        #log {
+            margin-top: 1.5rem;
+            text-align: left;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 1rem;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Excel File Merger Tool</h1>
+        <div id="drop-zone">
+            <p>Drag and drop files here, or click to select files.</p>
+            <input type="file" id="file-input" multiple accept=".xlsx" class="hidden">
+        </div>
+        <div id="file-list"></div>
+        <div style="margin-top: 1rem; text-align: left;">
+            <label for="key-select">Select Key Column</label>
+            <select id="key-select" style="width: 100%; padding: 0.5rem; margin-top: 0.5rem;">
+                <option value="">Select a key column</option>
+            </select>
+        </div>
+        <button id="merge-button" disabled>Merge Files</button>
+        <div id="log">Log messages will be displayed here.</div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileListDiv = document.getElementById('file-list');
+        const mergeButton = document.getElementById('merge-button');
+        const logDiv = document.getElementById('log');
+        const keySelect = document.getElementById('key-select');
+
+        let selectedFiles = [];
+
+        // --- UI Event Listeners ---
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        mergeButton.addEventListener('click', processFiles);
+
+        function log(message) {
+            console.log(message);
+            logDiv.innerHTML += message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(file => file.name.endsWith('.xlsx'));
+            fileListDiv.innerHTML = '';
+            if (selectedFiles.length > 0) {
+                log(`Selected ${selectedFiles.length} Excel files.`);
+                selectedFiles.forEach(file => {
+                    const fileElement = document.createElement('div');
+                    fileElement.textContent = file.name;
+                    fileListDiv.appendChild(fileElement);
+                });
+                await populateKeyOptions(selectedFiles);
+                mergeButton.disabled = false;
+            } else {
+                log("No Excel files selected.");
+                mergeButton.disabled = true;
+            }
+        }
+
+        // --- Core Logic ---
+
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                log("Error: No files to merge.");
+                return;
+            }
+
+            mergeButton.disabled = true;
+            logDiv.innerHTML = ''; // Clear log
+            log("Starting merge operation...");
+
+            try {
+                selectedFiles.sort((a, b) => a.name.localeCompare(b.name));
+                const templateFile = selectedFiles[0];
+                log(`Style template file: ${templateFile.name}`);
+
+                // --------- ExcelJS 로 모든 파일 읽어 데이터 병합 ---------
+                const keyColumn = keySelect.value;
+                if (!keyColumn) {
+                    log('Error: Please select a key column for merging first.');
+                    return;
+                }
+                const allRows = [];
+                const allHeadersSet = new Set();
+
+                for (const file of selectedFiles) {
+                    log(`Reading file ${file.name}...`);
+                    const wb = await loadWorkbook(file);
+                    const ws = wb.worksheets[0];
+                    if (!ws) continue;
+
+                    const headerValues = (ws.getRow(1).values || []).slice(1).map(v => normalizeCellValue(v));
+                    for (const h of headerValues) if (h) allHeadersSet.add(h);
+
+                    for (let r = 2; r <= ws.rowCount; r++) {
+                        const row = ws.getRow(r);
+                        if (!row || !row.hasValues) continue;
+                        const obj = {};
+                        for (let c = 0; c < headerValues.length; c++) {
+                            const key = headerValues[c];
+                            if (!key) continue;
+                            const val = normalizeCellValue(row.getCell(c + 1).value);
+                            if (val !== null && val !== undefined && val !== '') obj[key] = val;
+                        }
+                        if (Object.keys(obj).length > 0) allRows.push(obj);
+                    }
+                }
+
+                log("Merging data and removing duplicates...");
+                const mergedMap = new Map();
+                for (const row of allRows) {
+                    const id = row[keyColumn];
+                    if (id === undefined) continue;
+                    if (!mergedMap.has(id)) {
+                        mergedMap.set(id, { ...row });
+                    } else {
+                        const existing = mergedMap.get(id);
+                        for (const k of Object.keys(row)) {
+                            if (existing[k] === undefined || existing[k] === null || existing[k] === '') {
+                                existing[k] = row[k];
+                            }
+                        }
+                    }
+                }
+                const finalRows = Array.from(mergedMap.values());
+
+                // 템플릿 워크북/시트 로드 (스타일 복사용)
+                const templateWb = await loadWorkbook(templateFile);
+                const templateWs = templateWb.worksheets[0];
+                const templateHeader = (templateWs.getRow(1).values || []).slice(1).map(v => normalizeCellValue(v));
+
+                // 헤더 순서: 템플릿 헤더 우선, 이후 나머지 컬럼
+                const headerOrder = [...templateHeader];
+                for (const k of Array.from(allHeadersSet)) {
+                    if (!headerOrder.includes(k)) headerOrder.push(k);
+                }
+
+                // id -> 템플릿 행 번호 매핑
+                const idTemplateColIdx = templateHeader.indexOf(keyColumn);
+                const styleRowMap = new Map();
+                if (idTemplateColIdx !== -1) {
+                    for (let r = 2; r <= templateWs.rowCount; r++) {
+                        const val = normalizeCellValue(templateWs.getRow(r).getCell(idTemplateColIdx + 1).value);
+                        if (val !== null && val !== undefined && val !== '') styleRowMap.set(val, r);
+                    }
+                }
+
+                // 새 워크북/시트 생성
+                const outWb = new ExcelJS.Workbook();
+                const outWs = outWb.addWorksheet('MergedSheet');
+
+                // 컬럼 폭 복사 (헤더명 기준 매핑)
+                for (let c = 0; c < headerOrder.length; c++) {
+                    const name = headerOrder[c];
+                    const tIdx = templateHeader.indexOf(name);
+                    if (tIdx !== -1) {
+                        const w = templateWs.getColumn(tIdx + 1).width;
+                        if (w) outWs.getColumn(c + 1).width = w;
+                    }
+                }
+
+                // 헤더 작성 및 스타일 복사
+                outWs.addRow(headerOrder);
+                for (let c = 0; c < headerOrder.length; c++) {
+                    const name = headerOrder[c];
+                    const tIdx = templateHeader.indexOf(name);
+                    if (tIdx !== -1) {
+                        const src = templateWs.getRow(1).getCell(tIdx + 1);
+                        const dst = outWs.getRow(1).getCell(c + 1);
+                        copyCellStyle(src, dst);
+                    }
+                }
+
+                // 데이터 작성 + 스타일 복사
+                for (const rowObj of finalRows) {
+                    const values = headerOrder.map(k => rowObj[k] ?? null);
+                    outWs.addRow(values);
+                    const newRowIdx = outWs.rowCount;
+                    const idVal = rowObj[keyColumn];
+                    const tRowIdx = styleRowMap.get(idVal);
+                    if (tRowIdx) {
+                        // 행 높이
+                        const h = templateWs.getRow(tRowIdx).height;
+                        if (h) outWs.getRow(newRowIdx).height = h;
+                        // 셀 스타일
+                        for (let c = 0; c < headerOrder.length; c++) {
+                            const name = headerOrder[c];
+                            const tIdx = templateHeader.indexOf(name);
+                            if (tIdx === -1) continue;
+                            const src = templateWs.getRow(tRowIdx).getCell(tIdx + 1);
+                            const dst = outWs.getRow(newRowIdx).getCell(c + 1);
+                            copyCellStyle(src, dst);
+                        }
+                    }
+                }
+
+                log("Generating final file and starting download...");
+                const buf = await outWb.xlsx.writeBuffer();
+                const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'merged_styled.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(a.href);
+                a.remove();
+                log("Operation completed!");
+
+            } catch (error) {
+                log("Error occurred: " + error.message);
+                console.error(error);
+            } finally {
+                mergeButton.disabled = false;
+            }
+        }
+
+        // ---- Helper: File -> ExcelJS.Workbook ----
+        async function loadWorkbook(file) {
+            const buffer = await file.arrayBuffer();
+            const wb = new ExcelJS.Workbook();
+            await wb.xlsx.load(buffer);
+            return wb;
+        }
+
+        // ---- Helper: 업로드된 파일들에서 헤더를 수집해 키 선택 옵션 채우기 ----
+        async function populateKeyOptions(files) {
+            // 초기화
+            keySelect.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select a key column';
+            keySelect.appendChild(placeholder);
+
+            if (!files || files.length === 0) return;
+
+            const headerUnion = new Set();
+            const firstWb = await loadWorkbook(files[0]);
+            const firstWs = firstWb.worksheets[0];
+            const templateHeader = firstWs ? (firstWs.getRow(1).values || []).slice(1).map(v => normalizeCellValue(v)) : [];
+
+            // 모든 파일에서 헤더 수집
+            for (const f of files) {
+                try {
+                    const wb = await loadWorkbook(f);
+                    const ws = wb.worksheets[0];
+                    if (!ws) continue;
+                    const hs = (ws.getRow(1).values || []).slice(1).map(v => normalizeCellValue(v));
+                    for (const h of hs) if (h) headerUnion.add(h);
+                } catch (e) {
+                    // skip
+                }
+            }
+
+            // 표시 순서: 템플릿 헤더 우선, 이후 나머지
+            const ordered = [...templateHeader.filter(Boolean)];
+            for (const h of headerUnion) if (!ordered.includes(h)) ordered.push(h);
+
+            for (const h of ordered) {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h;
+                keySelect.appendChild(opt);
+            }
+
+            // 자동 선택은 하지 않음(사용자에게 선택받기)
+            keySelect.value = '';
+        }
+
+        // ---- Helper: 다양한 셀 값 형태를 일반 값으로 변환 ----
+        function normalizeCellValue(value) {
+            if (value === undefined || value === null) return null;
+            if (typeof value === 'object') {
+                if ('text' in value && value.text !== undefined) return value.text;
+                if ('richText' in value && Array.isArray(value.richText)) {
+                    return value.richText.map(rt => rt.text).join('');
+                }
+                if ('result' in value && value.result !== undefined) return value.result;
+                if ('formula' in value && value.formula !== undefined) return null;
+            }
+            return value;
+        }
+
+        // ---- Helper: 스타일 복사 (font/fill/border/alignment/numFmt) ----
+        function copyCellStyle(srcCell, dstCell) {
+            if (!srcCell || !dstCell) return;
+            if (srcCell.font) dstCell.font = { ...srcCell.font };
+            if (srcCell.alignment) dstCell.alignment = { ...srcCell.alignment };
+            if (srcCell.border) dstCell.border = JSON.parse(JSON.stringify(srcCell.border));
+            if (srcCell.fill) dstCell.fill = JSON.parse(JSON.stringify(srcCell.fill));
+            if (srcCell.numFmt) dstCell.numFmt = srcCell.numFmt;
+        }
+
+    </script>
+</body>
+</html>

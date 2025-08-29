@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Resource Board - n8n - ANHMAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: #6b7280;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .resource-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        .resource-content {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .add-resource-section {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .add-resource-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .add-btn {
+            padding: 0.75rem 1.5rem;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #059669;
+        }
+
+        .delete-btn {
+            padding: 0.25rem 0.5rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .back-btn {
+                position: static;
+                margin-bottom: 2rem;
+                display: inline-block;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../n8n/" class="back-btn">← Back to n8n Tools</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>RAG Resource Board</h1>
+            <p>Store and manage RAG-related prompts, code snippets, and configuration data</p>
+        </div>
+
+        <div class="add-resource-section">
+            <h3>Add New RAG Resource</h3>
+            <form id="addResourceForm">
+                <div class="form-group">
+                    <label for="resourceTitle">Title</label>
+                    <input type="text" id="resourceTitle" placeholder="Enter resource title (e.g., System Prompt, API Config)" required>
+                </div>
+                <div class="form-group">
+                    <label for="resourceContent">Content</label>
+                    <textarea id="resourceContent" placeholder="Enter prompts, configurations, code snippets, or other RAG-related content" required></textarea>
+                </div>
+                <button type="submit" class="add-btn">Add Resource</button>
+            </form>
+        </div>
+
+        <div id="resourcesGrid" class="resources-grid">
+            <!-- Dynamically generated resource cards -->
+        </div>
+    </div>
+
+    <script>
+        // Manage resources in localStorage
+        const STORAGE_KEY = 'rag_resources';
+
+        // Load initial data
+        function loadResources() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [
+                {
+                    id: Date.now(),
+                    title: "RAG System Prompt",
+                    content: "You are a RAG (Retrieval-Augmented Generation) assistant. Use the provided context to answer questions accurately and cite your sources. If the context doesn't contain relevant information, clearly state that you don't have enough information to answer the question."
+                },
+                {
+                    id: Date.now() + 1,
+                    title: "Vector Database Query",
+                    content: `{
+  "query": {
+    "match": {
+      "content": "{{$json.question}}"
+    }
+  },
+  "size": 5,
+  "_source": ["content", "metadata", "score"]
+}`
+                },
+                {
+                    id: Date.now() + 2,
+                    title: "OpenAI Embedding Request",
+                    content: `{
+  "model": "text-embedding-ada-002",
+  "input": "{{$json.text}}",
+  "encoding_format": "float"
+}`
+                }
+            ];
+        }
+
+        // Save resources
+        function saveResources(resources) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
+        }
+
+        // Render resources
+        function renderResources() {
+            const resources = loadResources();
+            const grid = document.getElementById('resourcesGrid');
+            
+            grid.innerHTML = resources.map(resource => `
+                <div class="resource-card" data-id="${resource.id}">
+                    <div class="resource-title">
+                        <span>${resource.title}</span>
+                        <div>
+                            <button class="copy-btn" onclick="copyToClipboard(${resource.id})">Copy</button>
+                            <button class="delete-btn" onclick="deleteResource(${resource.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="resource-content">${resource.content}</div>
+                </div>
+            `).join('');
+        }
+
+        // Copy to clipboard
+        async function copyToClipboard(resourceId) {
+            const resources = loadResources();
+            const resource = resources.find(r => r.id === resourceId);
+            
+            if (resource) {
+                try {
+                    await navigator.clipboard.writeText(resource.content);
+                    const button = document.querySelector(`[data-id="${resourceId}"] .copy-btn`);
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    alert('Failed to copy to clipboard.');
+                }
+            }
+        }
+
+        // Delete resource
+        function deleteResource(resourceId) {
+            if (confirm('Are you sure you want to delete this resource?')) {
+                let resources = loadResources();
+                resources = resources.filter(r => r.id !== resourceId);
+                saveResources(resources);
+                renderResources();
+            }
+        }
+
+        // Add new resource
+        document.getElementById('addResourceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('resourceTitle').value.trim();
+            const content = document.getElementById('resourceContent').value.trim();
+            
+            if (title && content) {
+                const resources = loadResources();
+                const newResource = {
+                    id: Date.now(),
+                    title: title,
+                    content: content
+                };
+                
+                resources.unshift(newResource); // Add to beginning
+                saveResources(resources);
+                renderResources();
+                
+                // Reset form
+                document.getElementById('resourceTitle').value = '';
+                document.getElementById('resourceContent').value = '';
+            }
+        });
+
+        // Initial render
+        renderResources();
+    </script>
+</body>
+</html>
