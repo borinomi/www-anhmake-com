@@ -139,6 +139,29 @@
             color: #1e293b;
         }
 
+        .version-info {
+            text-align: right;
+            margin-bottom: 1rem;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .reset-btn {
+            padding: 0.5rem 1rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: #dc2626;
+        }
+
         .form-group {
             margin-bottom: 1rem;
         }
@@ -223,6 +246,11 @@
             <p>Store and manage RAG-related prompts, code snippets, and configuration data</p>
         </div>
 
+        <div class="version-info">
+            Version: <span id="currentVersion">1.0</span>
+            <button class="reset-btn" onclick="resetToDefaults()">Reset to Defaults</button>
+        </div>
+
         <div class="add-resource-section">
             <h3>Add New RAG Resource</h3>
             <form id="addResourceForm">
@@ -244,41 +272,42 @@
     </div>
 
     <script>
+        // Version management - UPDATE THIS VERSION WHEN YOU MODIFY DEFAULT DATA
+        const CURRENT_VERSION = '1.0';
+        const VERSION_KEY = 'rag_version';
+        
         // Manage resources in localStorage
         const STORAGE_KEY = 'rag_resources';
+
+        // Check version and update if needed
+        function checkVersionAndUpdate() {
+            const storedVersion = localStorage.getItem(VERSION_KEY);
+            if (storedVersion !== CURRENT_VERSION) {
+                console.log(`Version update detected: ${storedVersion} → ${CURRENT_VERSION}`);
+                resetToDefaults();
+            }
+            document.getElementById('currentVersion').textContent = CURRENT_VERSION;
+        }
+
+        // Reset to default data
+        function resetToDefaults() {
+            if (confirm('This will reset all your custom data to the default resources. Are you sure?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+                renderResources();
+                alert('Data has been reset to defaults.');
+            }
+        }
+
+        // Get default resources - EMPTY BY DEFAULT, ADD YOUR CONTENT HERE
+        function getDefaultResources() {
+            return [];
+        }
 
         // Load initial data
         function loadResources() {
             const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : [
-                {
-                    id: Date.now(),
-                    title: "RAG System Prompt",
-                    content: "You are a RAG (Retrieval-Augmented Generation) assistant. Use the provided context to answer questions accurately and cite your sources. If the context doesn't contain relevant information, clearly state that you don't have enough information to answer the question."
-                },
-                {
-                    id: Date.now() + 1,
-                    title: "Vector Database Query",
-                    content: `{
-  "query": {
-    "match": {
-      "content": "{{$json.question}}"
-    }
-  },
-  "size": 5,
-  "_source": ["content", "metadata", "score"]
-}`
-                },
-                {
-                    id: Date.now() + 2,
-                    title: "OpenAI Embedding Request",
-                    content: `{
-  "model": "text-embedding-ada-002",
-  "input": "{{$json.text}}",
-  "encoding_format": "float"
-}`
-                }
-            ];
+            return stored ? JSON.parse(stored) : getDefaultResources();
         }
 
         // Save resources
@@ -364,7 +393,8 @@
             }
         });
 
-        // Initial render
+        // Initialize on page load
+        checkVersionAndUpdate();
         renderResources();
     </script>
 </body>
