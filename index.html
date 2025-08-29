@@ -23,7 +23,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f8fafc;
+            background: linear-gradient(to bottom right, #e0e7ff, #fce7f3);
             color: #1e293b;
             min-height: 100vh;
             display: flex;
@@ -35,8 +35,13 @@
 
         .container {
             text-align: center;
-            max-width: 800px;
+            max-width: 1200px;
             width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .logo {
@@ -49,14 +54,18 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 3rem;
-            color: #1e293b;
+            color: #384956;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 2rem;
             margin-bottom: 3rem;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .tool-card {
@@ -67,76 +76,116 @@
             text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .tool-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
-            border-color: #3b82f6;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #4338ca;
         }
 
-        .tool-card.available {
-            border-color: #10b981;
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4338ca, #7c3aed);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
-        .tool-card.available:hover {
-            border-color: #059669;
+        .tool-card:hover::before {
+            transform: scaleX(1);
         }
+
 
         .tool-card.coming-soon {
             opacity: 0.6;
             cursor: not-allowed;
         }
 
+        .tool-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         .tool-status {
             display: inline-block;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 2rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-available {
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
         }
 
         .status-coming-soon {
-            background: #64748b;
+            background: linear-gradient(135deg, #64748b, #475569);
             color: white;
         }
 
         .tool-card h3 {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
             color: #1e293b;
+            line-height: 1.3;
         }
 
         .tool-card p {
             color: #64748b;
             margin-bottom: 1.5rem;
-            line-height: 1.6;
+            line-height: 1.5;
+            font-size: 0.9rem;
         }
 
         .btn-tool {
-            padding: 0.75rem 1.5rem;
-            background: #3b82f6;
-            color: white;
+            color: #4338ca;
             text-decoration: none;
-            border-radius: 0.5rem;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.3s;
             display: inline-block;
+            font-size: 0.9rem;
         }
 
         .btn-tool:hover {
-            background: #2563eb;
+            color: #7c3aed;
         }
 
         .btn-tool.disabled {
-            background: #64748b;
+            color: #64748b;
             cursor: not-allowed;
         }
 
@@ -156,6 +205,12 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             .company-name {
                 font-size: 2rem;
@@ -169,6 +224,21 @@
                 width: 150px;
                 height: 150px;
             }
+            
+            .container {
+                padding: 2rem;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tool-card {
+                height: auto;
+                min-height: 250px;
+            }
         }
     </style>
 </head>
@@ -176,35 +246,43 @@
     <div class="container">
         <img src="logo.png" alt="ANHMAKE" class="logo">
         
-        <h1 class="company-name">ANHMAKE</h1>
+        <h1 class="company-name">We support your business with customized automation APIs</h1>
 
         <div class="tools-grid">
             <div class="tool-card available" onclick="window.open('./excel/', '_blank')">
-                <div class="tool-status status-available">Available</div>
-                <h3>Excel File Merger Tool</h3>
-                <p>Merge multiple Excel files into one and remove duplicate data.</p>
-                <a href="./excel/" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
+                <div class="tool-content">
+                    <div class="tool-icon"><img src="./excel/logo_excel.png" alt="Excel Tool"></div>
+                    <h3>Excel Tool</h3>
+                    <p>Get ready to go home with Excel tools.</p>
+                </div>
+                <div class="btn-tool">Click</div>
             </div>
 
             <div class="tool-card available" onclick="window.open('./n8n/', '_blank')">
-                <div class="tool-status status-available">Available</div>
-                <h3>n8n Resource Board</h3>
-                <p>View and copy n8n workflow-related code and system messages.</p>
-                <a href="./n8n/" class="btn-tool" onclick="event.stopPropagation()">Use Tool</a>
+                <div class="tool-content">
+                    <div class="tool-icon"><img src="./n8n/logo_n8n.png" alt="n8n Tool"></div>
+                    <h3>n8n Resource Board</h3>
+                    <p>View and copy n8n workflow-related code and system messages.</p>
+                </div>
+                <div class="btn-tool">Click</div>
             </div>
 
             <div class="tool-card available" onclick="window.open('https://gpm.anhmake.com', '_blank')">
-                <div class="tool-status status-available">Available</div>
-                <h3>GPM - Chrome Extension</h3>
-                <p>Chrome extension for Facebook group post management.</p>
-                <a href="https://gpm.anhmake.com" class="btn-tool" onclick="event.stopPropagation()" target="_blank">Use Tool</a>
+                <div class="tool-content">
+                    <div class="tool-icon"><img src="./gpm/logo.png" alt="GPM Tool"></div>
+                    <h3>GPM - Chrome Extension</h3>
+                    <p>Chrome extension for Facebook group post management.</p>
+                </div>
+                <div class="btn-tool">Click</div>
             </div>
 
             <div class="tool-card available" onclick="window.open('https://gpm2.anhmake.com', '_blank')">
-                <div class="tool-status status-available">Available</div>
-                <h3>GPM2 - Web App</h3>
-                <p>Facebook group post manager web application.</p>
-                <a href="https://gpm2.anhmake.com" class="btn-tool" onclick="event.stopPropagation()" target="_blank">Use Tool</a>
+                <div class="tool-content">
+                    <div class="tool-icon"><img src="./gpm/logo.png" alt="GPM2 Tool"></div>
+                    <h3>GPM2 - Web application</h3>
+                    <p>Facebook group post automation system.</p>
+                </div>
+                <div class="btn-tool">Click</div>
             </div>
         </div>
 
