@@ -41,26 +41,43 @@
 
         .header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
             margin-bottom: 2rem;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            backdrop-filter: blur(8px);
             width: fit-content;
         }
 
         .logo {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
         }
 
-        .company-name {
-            font-size: 1.25rem;
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-line {
+            color: #ffffff;
             font-weight: 600;
-            color: #384956;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             margin: 0;
+            line-height: 1.4;
+        }
+
+        .header-line:first-child {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-line:nth-child(2) {
+            font-size: 1rem;
+        }
+
+        .header-line:last-child {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
 
         .tools-grid {
@@ -214,21 +231,25 @@
         }
 
         @media (max-width: 768px) {
-            .company-name {
-                font-size: 1rem;
+            .logo {
+                width: 48px;
+                height: 48px;
+            }
+
+            .header-line:first-child {
+                font-size: 1.25rem;
+            }
+
+            .header-line:nth-child(2) {
+                font-size: 0.9rem;
+            }
+
+            .header-line:last-child {
+                font-size: 0.8rem;
             }
 
             .tools-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .logo {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .header {
-                padding: 0.8rem 1rem;
             }
             
             body {
@@ -248,7 +269,11 @@
     <div class="container">
         <div class="header">
             <img src="logo.png" alt="ANHMAKE" class="logo">
-            <h1 class="company-name">ANHMAKE</h1>
+            <div class="header-text">
+                <div class="header-line">ANHMAKE</div>
+                <div class="header-line">AI 자동화의 이해</div>
+                <div class="header-line">www.anhmake.com</div>
+            </div>
         </div>
 
         <div class="tools-grid">
