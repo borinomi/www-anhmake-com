@@ -33,48 +33,33 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to fetch dashboard card data' });
     }
 
-    // Get sections and their items (urls and code_snippets) for this dashboard
-    const sections = [];
-
-    // For now, we'll create a simple structure with sections
-    // In a real implementation, you might want to store dashboard-specific sections
-    // For demonstration, we'll show URLs and Code snippets that belong to this card
-    
-    // Get URLs under this dashboard card
+    // Get URLs and Code snippets under this dashboard card
     const { data: urlsData, error: urlsError } = await supabase
       .from('urls')
       .select('*')
       .eq('card_id', id)
       .order('created_at', { ascending: true });
 
-    // Get Code snippets under this dashboard card  
     const { data: codeData, error: codeError } = await supabase
       .from('code_snippets')
       .select('*')
       .eq('card_id', id)
       .order('created_at', { ascending: true });
 
-    // Create sections based on content
-    if (urlsData && urlsData.length > 0) {
-      sections.push({
-        id: 'urls',
-        title: 'Links',
-        cards: urlsData.map(url => ({
+    // Create default section with all cards
+    const sections = [{
+      id: 'main',
+      title: cardData.title || '메인 섹션',
+      cards: [
+        ...(urlsData || []).map(url => ({
           id: url.id,
           type: 'url',
           title: url.title,
           description: url.description || '',
           icon: url.icon,
           url: url.url
-        }))
-      });
-    }
-
-    if (codeData && codeData.length > 0) {
-      sections.push({
-        id: 'code',
-        title: 'Code Snippets',
-        cards: codeData.map(code => ({
+        })),
+        ...(codeData || []).map(code => ({
           id: code.id,
           type: 'code',
           title: code.title,
@@ -82,8 +67,8 @@ module.exports = async function handler(req, res) {
           icon: code.icon,
           code_data_path: code.id
         }))
-      });
-    }
+      ]
+    }];
 
     // Return dashboard data with sections
     const dashboardData = {

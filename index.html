@@ -1278,13 +1278,23 @@
                     if (urlCard) cardType = 'url';
                 }
                 
-                // If not URL, check if it's a Dashboard/Code card
+                // If not URL, check if it's a Dashboard card
                 if (!cardType) {
                     const cardsResponse = await fetch(`/api/cards?section_id=${sectionId}`);
                     if (cardsResponse.ok) {
                         const cards = await cardsResponse.json();
                         const dashboardCard = cards.find(c => c.id == cardId);
                         if (dashboardCard) cardType = 'dashboard';
+                    }
+                }
+                
+                // If not URL or Dashboard, check if it's a Code Snippet
+                if (!cardType) {
+                    const codeResponse = await fetch(`/api/code-snippets?section_id=${sectionId}`);
+                    if (codeResponse.ok) {
+                        const codes = await codeResponse.json();
+                        const codeCard = codes.find(c => c.id == cardId);
+                        if (codeCard) cardType = 'code';
                     }
                 }
                 
@@ -1301,6 +1311,10 @@
                     });
                 } else if (cardType === 'dashboard') {
                     deleteResponse = await fetch(`/api/cards/${cardId}`, {
+                        method: 'DELETE'
+                    });
+                } else if (cardType === 'code') {
+                    deleteResponse = await fetch(`/api/code-snippets/${cardId}`, {
                         method: 'DELETE'
                     });
                 }
