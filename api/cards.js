@@ -1,13 +1,11 @@
-import { createClient } from '@supabase/supabase-js'; // Import Supabase client
-import fs from 'fs/promises'; // Keep fs for now, might be needed for other operations later, or remove if not used
-import path from 'path'; // Keep path for now
+const { createClient } = require('@supabase/supabase-js');
 
 // Initialize Supabase client using environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { method } = req;
   
   try {

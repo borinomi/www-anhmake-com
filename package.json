@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "ANHMAKE website with Supabase integration",
   "main": "index.html",
-  "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
   },

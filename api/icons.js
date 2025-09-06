@@ -1,7 +1,7 @@
-import fs from 'fs/promises';
-import path from 'path';
+const fs = require('fs/promises');
+const path = require('path');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
