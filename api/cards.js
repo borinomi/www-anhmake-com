@@ -1,5 +1,11 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js'; // Import Supabase client
+import fs from 'fs/promises'; // Keep fs for now, might be needed for other operations later, or remove if not used
+import path from 'path'; // Keep path for now
+
+// Initialize Supabase client using environment variables
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,40 +14,38 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { fileName, title, description } = req.body;
+    const { id, section_id, title, description, icon, created_at } = req.body;
 
-    if (!fileName || !title || !description) {
-      return res.status(400).json({ error: 'fileName, title, and description are required.' });
+    // Basic validation for dashboard cards
+    if (!id || !section_id || !title || !description) {
+      return res.status(400).json({ error: 'Missing required dashboard card fields.' });
     }
 
-    // Validate fileName to prevent directory traversal attacks
-    if (!/^[a-z0-9-]+$/.test(fileName)) {
-        return res.status(400).json({ error: 'Invalid fileName. Only lowercase letters, numbers, and hyphens are allowed.' });
+    // Prepare data for insertion into 'cards' table (dashboard only)
+    const cardDataToInsert = {
+      id: id,
+      section_id: section_id,
+      title: title,
+      description: description,
+      icon: icon || 'logo.png',
+      created_at: created_at || new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('cards')
+      .insert([cardDataToInsert])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return res.status(500).json({ error: 'Failed to insert dashboard card into Supabase.' });
     }
 
-    const templatePath = path.join(process.cwd(), 'code', 'template.html');
-    let templateContent;
-    try {
-        templateContent = await fs.readFile(templatePath, 'utf-8');
-    } catch (error) {
-        console.error('Error reading template file:', error);
-        return res.status(500).json({ error: 'Could not read template file.' });
-    }
-
-    // Replace placeholders
-    let newContent = templateContent.replace(/{{TITLE}}/g, title);
-    newContent = newContent.replace(/{{DESCRIPTION}}/g, description);
-    
-    const newFilePath = path.join(process.cwd(), 'code', `${fileName}.html`);
-    
-    await fs.writeFile(newFilePath, newContent);
-
-    // TODO: Add logic to save card metadata to Supabase DB
-
-    return res.status(201).json({ success: true, path: `/code/${fileName}.html` });
+    return res.status(201).json({ success: true, message: 'Dashboard card saved to Supabase.', data: data });
 
   } catch (error) {
-    console.error('Error creating code page:', error);
+    console.error('Error in API handler:', error);
     return res.status(500).json({ error: 'An internal server error occurred.' });
   }
 }

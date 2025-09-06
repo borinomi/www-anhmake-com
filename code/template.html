@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{TITLE}} - n8n - ANHMAKE</title>
+    <title>Code Snippet - ANHMAKE</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,517 +16,330 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f8fafc;
+            background-image: url("../chalk-bg.jpg");
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
             color: #1e293b;
             min-height: 100vh;
             padding: 2rem;
         }
 
         .container {
+            width: 100%;
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #1e293b;
-        }
-
-        .header p {
-            color: #64748b;
-            font-size: 1.1rem;
-        }
-
         .back-btn {
-            position: absolute;
-            top: 2rem;
-            left: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
             padding: 0.75rem 1.5rem;
-            background: #6b7280;
-            color: white;
+            border: none;
+            border-radius: 2rem;
             text-decoration: none;
-            border-radius: 0.5rem;
             font-weight: 500;
-            transition: background-color 0.3s;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .back-btn:hover {
-            background: #4b5563;
-        }
-
-        .resources-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .resource-card {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .resource-card:hover {
+            background: rgba(0, 0, 0, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border-color: #3b82f6;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .resource-title {
-            font-size: 1.25rem;
+        .header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            width: fit-content;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-line {
+            color: #ffffff;
             font-weight: 600;
-            margin-bottom: 1rem;
-            color: #1e293b;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .header-line:first-child {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-line:nth-child(2) {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .code-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .card-actions {
-            display: flex;
-            gap: 0.5rem;
+        .code-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
         }
 
         .copy-btn {
-            padding: 0.5rem 1rem;
-            background: #3b82f6;
+            background: #4338ca;
             color: white;
             border: none;
+            padding: 0.5rem 1rem;
             border-radius: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.2s ease;
         }
 
         .copy-btn:hover {
-            background: #2563eb;
+            background: #3730a3;
         }
 
         .copy-btn.copied {
             background: #10b981;
         }
 
-        .edit-btn {
-            padding: 0.5rem 1rem;
-            background: #f59e0b;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        .code-content {
+            padding: 0;
+            max-height: 70vh;
+            overflow-y: auto;
         }
 
-        .edit-btn:hover {
-            background: #d97706;
-        }
-
-        .delete-btn {
-            padding: 0.5rem 1rem;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
-        }
-
-        .resource-content {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
+        .code-content pre {
+            margin: 0;
+            padding: 1.5rem;
+            background: #f8fafc;
+            font-size: 0.9rem;
             line-height: 1.6;
             white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 300px;
-            overflow-y: auto;
+            word-wrap: break-word;
         }
 
-        .add-resource-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 2rem;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
+        .code-content code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
 
-        .add-resource-btn:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
         }
 
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 2rem;
+        .error {
+            text-align: center;
+            padding: 3rem;
+            color: #dc2626;
+            background: white;
             border-radius: 1rem;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
-        .modal h2 {
-            margin-bottom: 1.5rem;
-            color: #1e293b;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #374151;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            min-height: 200px;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .back-btn {
-                position: static;
-                margin-bottom: 2rem;
-                display: inline-block;
+            body {
+                padding: 1rem;
             }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .resources-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                margin: 10% auto;
-                width: 95%;
-            }
-
-            .card-actions {
+            
+            .header {
                 flex-direction: column;
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-    <a href="../n8n/" class="back-btn">← Back to n8n Tools</a>
-    
     <div class="container">
+        <a href="../" class="back-btn">← 메인으로</a>
+        
         <div class="header">
-            <h1>{{TITLE}}</h1>
-            <p>{{DESCRIPTION}}</p>
+            <img id="codeIcon" src="../logo.png" alt="Code" class="logo">
+            <div class="header-text">
+                <div class="header-line" id="codeTitle">로딩 중...</div>
+                <div class="header-line" id="codeDescription">코드 정보를 불러오는 중입니다.</div>
+            </div>
         </div>
 
-        <div id="resourcesGrid" class="resources-grid">
-            <!-- Resources loaded dynamically -->
-        </div>
-
-        <button class="add-resource-btn" onclick="openAddModal()" title="코드 추가">+</button>
-    </div>
-
-    <!-- Add/Edit Resource Modal -->
-    <div id="resourceModal" class="modal">
-        <div class="modal-content">
-            <h2 id="modalTitle">새 리소스 추가</h2>
-            <form id="resourceForm">
-                <div class="form-group">
-                    <label for="resourceTitle">제목</label>
-                    <input type="text" id="resourceTitle" name="title" required>
-                </div>
-                <div class="form-group">
-                    <label for="resourceContent">내용</label>
-                    <textarea id="resourceContent" name="content" required placeholder="코드나 텍스트를 입력하세요..."></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">추가</button>
-                </div>
-            </form>
+        <div id="contentContainer">
+            <div class="loading">
+                코드 스니펫을 불러오는 중...
+            </div>
         </div>
     </div>
 
     <script>
-        let currentEditId = null;
-        let resources = [];
+        let snippetId = null;
+        let snippetData = null;
 
-        // Load resources from database/API
-        async function loadResources() {
+        // Get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Get icon path from filename
+        function getIconPath(iconFilename) {
+            if (!iconFilename) return '../logo.png';
+            return `../icon/${iconFilename}`;
+        }
+
+        // Load code snippet data
+        async function loadCodeSnippet() {
             try {
-                // TODO: Replace with actual API call
-                // const response = await fetch('/api/resources');
-                // resources = await response.json();
+                snippetId = getUrlParameter('id');
+                if (!snippetId) {
+                    throw new Error('Code snippet ID not provided in URL');
+                }
+
+                // First try to get the snippet directly
+                let response = await fetch(`/api/code-snippets?card_id=${snippetId}`);
+                if (!response.ok) {
+                    // If that fails, try getting it as a single snippet
+                    response = await fetch(`/api/code-snippets/${snippetId}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch code snippet: ${response.statusText}`);
+                    }
+                }
+
+                const data = await response.json();
                 
-                // Temporary static data for demonstration
-                resources = [];
-                renderResources();
+                // Handle different response formats
+                if (data.snippets && data.snippets.length > 0) {
+                    snippetData = data.snippets[0]; // Take first snippet if multiple
+                } else if (data.id) {
+                    snippetData = data; // Direct snippet object
+                } else {
+                    throw new Error('No code snippet found');
+                }
+
+                // Update page header
+                document.getElementById('codeTitle').textContent = snippetData.title || 'Code Snippet';
+                document.getElementById('codeDescription').textContent = 'Code Snippet';
+                document.getElementById('codeIcon').src = getIconPath(snippetData.icon);
+                document.title = `${snippetData.title || 'Code Snippet'} - ANHMAKE`;
+
+                // Render code content
+                renderCodeContent();
+                
             } catch (error) {
-                console.error('Failed to load resources:', error);
+                console.error('Failed to load code snippet:', error);
+                showError(error.message);
             }
         }
 
-        // Render resources to grid
-        function renderResources() {
-            const grid = document.getElementById('resourcesGrid');
+        // Render code content
+        function renderCodeContent() {
+            const contentContainer = document.getElementById('contentContainer');
             
-            if (resources.length === 0) {
-                grid.innerHTML = '<div style="text-align: center; color: #64748b; grid-column: 1/-1;">리소스가 없습니다. + 버튼을 눌러 추가하세요.</div>';
-                return;
-            }
-
-            grid.innerHTML = resources.map(resource => `
-                <div class="resource-card" data-id="${resource.id}">
-                    <div class="resource-title">
-                        <span>${escapeHtml(resource.title)}</span>
-                        <div class="card-actions">
-                            <button class="copy-btn" onclick="copyResourceContent(event)">Copy</button>
-                            <button class="edit-btn" onclick="openEditModal(${resource.id})">Edit</button>
-                            <button class="delete-btn" onclick="deleteResource(${resource.id})">Delete</button>
-                        </div>
+            contentContainer.innerHTML = `
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="code-title">${escapeHtml(snippetData.title)}</div>
+                        <button class="copy-btn" onclick="copyCode()">복사</button>
                     </div>
-                    <div class="resource-content">${escapeHtml(resource.content)}</div>
+                    <div class="code-content">
+                        <pre><code id="codeBlock">${escapeHtml(snippetData.content)}</code></pre>
+                    </div>
                 </div>
-            `).join('');
+            `;
+
+            // Apply syntax highlighting
+            hljs.highlightAll();
         }
 
-        // Copy resource content
-        async function copyResourceContent(event) {
-            const button = event.target;
-            const card = button.closest('.resource-card');
-            const resourceId = parseInt(card.dataset.id, 10);
-            const resource = resources.find(r => r.id === resourceId);
-
-            if (!resource) {
-                console.error('Resource not found for copying');
-                alert('복사에 실패했습니다.');
-                return;
-            }
-
+        // Copy code to clipboard
+        async function copyCode() {
+            const codeBlock = document.getElementById('codeBlock');
+            const copyBtn = document.querySelector('.copy-btn');
+            
             try {
-                await navigator.clipboard.writeText(resource.content);
-                button.textContent = 'Copied!';
-                button.classList.add('copied');
+                await navigator.clipboard.writeText(snippetData.content);
+                copyBtn.textContent = '복사됨!';
+                copyBtn.classList.add('copied');
                 
                 setTimeout(() => {
-                    button.textContent = 'Copy';
-                    button.classList.remove('copied');
+                    copyBtn.textContent = '복사';
+                    copyBtn.classList.remove('copied');
                 }, 2000);
-            } catch (err) {
-                console.error('Copy failed:', err);
-                alert('복사에 실패했습니다. 이 기능은 HTTPS 또는 localhost 환경에서만 동작할 수 있습니다.');
-            }
-        }
-
-        // Open add modal
-        function openAddModal() {
-            currentEditId = null;
-            document.getElementById('modalTitle').textContent = '새 리소스 추가';
-            document.getElementById('submitBtn').textContent = '추가';
-            document.getElementById('resourceForm').reset();
-            document.getElementById('resourceModal').style.display = 'block';
-        }
-
-        // Open edit modal
-        function openEditModal(id) {
-            const resource = resources.find(r => r.id === id);
-            if (!resource) return;
-
-            currentEditId = id;
-            document.getElementById('modalTitle').textContent = '리소스 수정';
-            document.getElementById('submitBtn').textContent = '수정';
-            document.getElementById('resourceTitle').value = resource.title;
-            document.getElementById('resourceContent').value = resource.content;
-            document.getElementById('resourceModal').style.display = 'block';
-        }
-
-        // Close modal
-        function closeModal() {
-            document.getElementById('resourceModal').style.display = 'none';
-            currentEditId = null;
-        }
-
-        // Handle form submission
-        document.getElementById('resourceForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const title = document.getElementById('resourceTitle').value.trim();
-            const content = document.getElementById('resourceContent').value.trim();
-            
-            if (!title || !content) {
-                alert('제목과 내용을 모두 입력해주세요.');
-                return;
-            }
-
-            try {
-                if (currentEditId) {
-                    await updateResource(currentEditId, { title, content });
-                } else {
-                    await addResource({ title, content });
-                }
-                closeModal();
-                renderResources();
             } catch (error) {
-                console.error('Failed to save resource:', error);
-                alert('저장에 실패했습니다.');
-            }
-        });
-
-        // Add new resource
-        async function addResource(data) {
-            // TODO: Replace with actual API call
-            // const response = await fetch('/api/resources', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(data)
-            // });
-            
-            // Temporary local storage for demonstration
-            const newResource = {
-                id: Date.now(),
-                title: data.title,
-                content: data.content,
-                created_at: new Date().toISOString()
-            };
-            resources.push(newResource);
-        }
-
-        // Update existing resource
-        async function updateResource(id, data) {
-            // TODO: Replace with actual API call
-            // const response = await fetch(`/api/resources/${id}`, {
-            //     method: 'PUT',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(data)
-            // });
-            
-            // Temporary local update for demonstration
-            const index = resources.findIndex(r => r.id === id);
-            if (index !== -1) {
-                resources[index] = { ...resources[index], ...data };
-            }
-        }
-
-        // Delete resource
-        async function deleteResource(id) {
-            if (!confirm('이 리소스를 삭제하시겠습니까?')) return;
-
-            try {
-                // TODO: Replace with actual API call
-                // await fetch(`/api/resources/${id}`, { method: 'DELETE' });
+                console.error('Failed to copy code:', error);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = snippetData.content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
                 
-                // Temporary local deletion for demonstration
-                resources = resources.filter(r => r.id !== id);
-                renderResources();
-            } catch (error) {
-                console.error('Failed to delete resource:', error);
-                alert('삭제에 실패했습니다.');
+                copyBtn.textContent = '복사됨!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '복사';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
             }
+        }
+
+        // Show error message
+        function showError(message) {
+            const contentContainer = document.getElementById('contentContainer');
+            contentContainer.innerHTML = `
+                <div class="error">
+                    <h3>오류가 발생했습니다</h3>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+            
+            document.getElementById('codeTitle').textContent = 'Error Loading Code';
+            document.getElementById('codeDescription').textContent = message;
         }
 
         // Escape HTML to prevent XSS
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Close modal when clicking outside
-        document.getElementById('resourceModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', loadResources);
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', loadCodeSnippet);
     </script>
 </body>
 </html>

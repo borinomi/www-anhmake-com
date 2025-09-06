@@ -286,38 +286,180 @@
         <a href="../" class="back-btn">← 메인으로</a>
         
         <div class="header">
-            <img src="{{ICON}}" alt="{{TITLE}}" class="logo">
+            <img id="pageIcon" src="../logo.png" alt="Dashboard" class="logo">
             <div class="header-text">
-                <div class="header-line">{{TITLE}}</div>
-                <div class="header-line">{{DESCRIPTION}}</div>
-                <div class="header-line">{{URL}}</div>
+                <div class="header-line" id="pageTitle">로딩 중...</div>
+                <div class="header-line" id="pageDescription">페이지 정보를 불러오는 중입니다.</div>
+                <div class="header-line" id="pageUrl"></div>
             </div>
         </div>
 
         <div id="sectionsContainer">
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">예시 섹션</h2>
-                    <div class="section-actions">
-                        <button class="btn-section-action" title="카드 추가">+</button>
-                        <button class="btn-section-action" title="섹션 설정">⋯</button>
-                    </div>
-                </div>
-                <div class="cards-grid">
-                    <div class="tool-card">
-                        <div class="card-menu" title="카드 메뉴">⋯</div>
-                        <div class="tool-content">
-                            <div class="tool-icon">
-                                <img src="../logo.png" alt="Example">
-                            </div>
-                            <h3>예시 카드</h3>
-                            <p>이곳에 하위 카드들이 표시됩니다. 카드 시스템이 완전히 구현되면 동적으로 관리됩니다.</p>
-                        </div>
-                        <div class="btn-tool">준비중</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Sections and cards loaded dynamically -->
         </div>
     </div>
+
+    <script>
+        let dashboardId = null;
+        let pageData = null;
+        let sectionsData = [];
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Get icon path from filename
+        function getIconPath(iconFilename) {
+            if (!iconFilename) return '../logo.png';
+            return `../icon/${iconFilename}`;
+        }
+
+        // Load dashboard data from Supabase API
+        async function loadDashboard() {
+            try {
+                // Get dashboard card ID from URL parameter
+                dashboardId = getUrlParameter('id');
+                if (!dashboardId) {
+                    throw new Error('Dashboard ID not provided in URL');
+                }
+
+                // Fetch dashboard card data from cards table
+                const response = await fetch(`/api/dashboard-data?id=${dashboardId}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch dashboard data: ${response.statusText}`);
+                }
+
+                pageData = await response.json();
+
+                // Update page header with card data
+                document.getElementById('pageTitle').textContent = pageData.title || 'Dashboard';
+                document.getElementById('pageDescription').textContent = pageData.description || '';
+                document.getElementById('pageUrl').textContent = '';
+                document.getElementById('pageIcon').src = getIconPath(pageData.icon);
+                document.title = `${pageData.title || 'Dashboard'} - ANHMAKE`;
+
+                // Load sections and cards for this dashboard
+                await loadSectionsAndCards();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                document.getElementById('pageTitle').textContent = 'Error Loading Dashboard';
+                document.getElementById('pageDescription').textContent = error.message;
+                document.getElementById('sectionsContainer').innerHTML = 
+                    '<div style="text-align: center; color: #64748b; margin-top: 2rem;">페이지를 불러올 수 없습니다.</div>';
+            }
+        }
+
+        // Load sections and cards for this dashboard
+        async function loadSectionsAndCards() {
+            try {
+                // Get sections and cards data from page's data_json or separate API
+                const sectionsData = pageData.data_json?.sections || [];
+                
+                if (sectionsData.length === 0) {
+                    document.getElementById('sectionsContainer').innerHTML = 
+                        '<div style="text-align: center; color: #64748b; margin-top: 2rem;">아직 섹션이 없습니다.</div>';
+                    return;
+                }
+
+                // Render sections
+                const sectionsHtml = sectionsData.map(section => `
+                    <div class="section">
+                        <div class="section-header">
+                            <h2 class="section-title">${escapeHtml(section.title)}</h2>
+                            <div class="section-actions">
+                                <button class="btn-section-action" title="카드 추가" onclick="addCard('${section.id}')">+</button>
+                                <button class="btn-section-action" title="섹션 설정" onclick="editSection('${section.id}')">⋯</button>
+                            </div>
+                        </div>
+                        <div class="cards-grid">
+                            ${renderCards(section.cards || [])}
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('sectionsContainer').innerHTML = sectionsHtml;
+                
+            } catch (error) {
+                console.error('Failed to load sections:', error);
+            }
+        }
+
+        // Render cards HTML
+        function renderCards(cards) {
+            if (!cards || cards.length === 0) {
+                return '<div style="grid-column: 1/-1; text-align: center; color: #64748b;">카드가 없습니다.</div>';
+            }
+
+            return cards.map(card => `
+                <div class="tool-card" onclick="openCard('${card.type}', '${card.id}', '${escapeHtml(card.title)}', '${escapeHtml(card.description)}', '${card.icon || ''}', '${card.url || ''}')">
+                    <div class="card-menu" title="카드 메뉴" onclick="event.stopPropagation(); editCard('${card.id}')">⋯</div>
+                    <div class="tool-content">
+                        <div class="tool-icon">
+                            <img src="${getIconPath(card.icon)}" alt="${escapeHtml(card.title)}" onerror="this.src='../logo.png'">
+                        </div>
+                        <h3>${escapeHtml(card.title)}</h3>
+                        <p>${escapeHtml(card.description)}</p>
+                    </div>
+                    <div class="btn-tool">${getCardTypeLabel(card.type)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Get card type display label
+        function getCardTypeLabel(type) {
+            switch(type) {
+                case 'url': return '링크 열기';
+                case 'dashboard': return '대시보드';
+                case 'code': return '코드 보기';
+                default: return '카드';
+            }
+        }
+
+        // Open card based on type
+        function openCard(type, id, title, description, icon, url) {
+            switch(type) {
+                case 'url':
+                    if (url) window.open(url, '_blank');
+                    break;
+                case 'dashboard':
+                    if (id) window.open(`../dashboard/template.html?id=${id}`, '_blank');
+                    break;
+                case 'code':
+                    if (id) window.open(`../code/template.html?id=${id}`, '_blank');
+                    break;
+                default:
+                    alert('카드 타입을 인식할 수 없습니다.');
+            }
+        }
+
+        // Placeholder functions for card/section management
+        function addCard(sectionId) {
+            alert('카드 추가 기능 준비중');
+        }
+
+        function editCard(cardId) {
+            alert('카드 수정 기능 준비중');
+        }
+
+        function editSection(sectionId) {
+            alert('섹션 설정 기능 준비중');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize dashboard on page load
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
 </body>
 </html>

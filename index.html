@@ -764,7 +764,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo.png" alt="ANHMAKE" class="logo">
+            <img src="icon/logo.png" alt="ANHMAKE" class="logo">
             <div class="header-text">
                 <div class="header-line">ANHMAKE</div>
                 <div class="header-line">AI 자동화의 이해</div>
@@ -832,8 +832,11 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label" for="cardIcon">아이콘 경로</label>
-                        <input type="text" id="cardIcon" class="form-input" placeholder="./path/to/icon.png (선택사항)">
+                        <label class="form-label" for="cardIcon">아이콘 선택</label>
+                        <select id="cardIcon" class="form-select">
+                            <option value="logo.png">기본 아이콘 (logo.png)</option>
+                            <!-- Icons will be loaded here -->
+                        </select>
                     </div>
                     
                     <!-- URL specific fields -->
@@ -910,10 +913,10 @@
                     clickAction = `onclick="window.open('${card.url}', '_blank')"`;
                     break;
                 case 'dashboard':
-                    clickAction = `onclick="openDashboard('${card.dashboard_id}', '${card.title}', '${card.description}', '${card.icon}')"`;
+                    clickAction = `onclick="openDashboard('${card.id}', '${card.title}', '${card.description}', '${card.icon}')"`;
                     break;
                 case 'code':
-                    clickAction = `onclick="openCodeBoard('${card.code_data_path}', '${card.title}', '${card.description}')"`;
+                    clickAction = `onclick="openCodeBoard('${card.id}', '${card.title}', '${card.description}')"`;
                     break;
             }
             
@@ -922,7 +925,7 @@
                     <div class="card-menu" onclick="event.stopPropagation(); showCardMenu(event, ${card.id})" title="카드 메뉴">⋯</div>
                     <div class="tool-content">
                         <div class="tool-icon">
-                            <img src="${card.icon}" alt="${card.title}" onerror="this.src='./logo.png'">
+                            <img src="icon/${card.icon}" alt="${card.title}" onerror="this.src='icon/logo.png'">
                         </div>
                         <h3>${card.title}</h3>
                         <p>${card.description}</p>
@@ -1036,7 +1039,7 @@
                 document.getElementById('cardType').value = card.type;
                 document.getElementById('cardTitle').value = card.title;
                 document.getElementById('cardDescription').value = card.description;
-                document.getElementById('cardIcon').value = card.icon || '';
+                // document.getElementById('cardIcon').value = card.icon || ''; // This line will be replaced
                 
                 // Load type-specific data
                 if (card.type === 'url') {
@@ -1090,7 +1093,7 @@
             const type = document.getElementById('cardType').value;
             const title = document.getElementById('cardTitle').value.trim();
             const description = document.getElementById('cardDescription').value.trim();
-            const icon = document.getElementById('cardIcon').value.trim() || './logo.png';
+            const icon = document.getElementById('cardIcon').value.trim() || 'logo.png';
             
             if (!title) {
                 alert('카드 제목을 입력해주세요.');
@@ -1227,13 +1230,12 @@
             }
         }
         
-        function openDashboard(dashboardId, title, description, icon) {
-            alert('Dashboard 기능은 준비중입니다.');
+        function openDashboard(cardId, title, description, icon) {
+            window.open(`./dashboard/template.html?id=${cardId}`, '_blank');
         }
         
-        function openCodeBoard(codeDataPath, title, description) {
-            // The codeDataPath is the filename without extension
-            window.open(`./code/${codeDataPath}.html`, '_blank');
+        function openCodeBoard(cardId, title, description) {
+            window.open(`./code/template.html?id=${cardId}`, '_blank');
         }
 
         
@@ -1249,25 +1251,22 @@
         
     </script>
 </body>
-</html>     if (stored) {
-                try {
-                    const parsedData = JSON.parse(stored);
-                    window.sectionsData = {
-                        ...window.sectionsData,
-                        sections: parsedData.sections || window.sectionsData.sections
-                    };
-                } catch (e) {
-                    console.log('Could not parse stored data, using default');
-                }
+</html>pt>
+</body>
+</html>ment('option');
+                    option.value = iconPath;
+                    option.textContent = iconPath.split('/').pop(); // Display filename
+                    cardIconSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading icons:', error);
+                // Optionally, alert the user or log to console
             }
         }
-        
-        function openDashboard(dashboardId, title, description, icon) {
-            alert('Dashboard 기능은 준비중입니다.');
-        }
-        
+
         function openCodeBoard(codeDataPath, title, description) {
-            window.open('n8n/rag.html', '_blank');
+            // The codeDataPath is the filename without extension
+            window.open(`./code/template.html?id=${codeDataPath}`, '_blank');
         }
 
         
