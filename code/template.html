@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} - n8n - ANHMAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: #6b7280;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .resource-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        .edit-btn {
+            padding: 0.5rem 1rem;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .edit-btn:hover {
+            background: #d97706;
+        }
+
+        .delete-btn {
+            padding: 0.5rem 1rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .resource-content {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .add-resource-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .add-resource-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .back-btn {
+                position: static;
+                margin-bottom: 2rem;
+                display: inline-block;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../n8n/" class="back-btn">← Back to n8n Tools</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>{{TITLE}}</h1>
+            <p>{{DESCRIPTION}}</p>
+        </div>
+
+        <div id="resourcesGrid" class="resources-grid">
+            <!-- Resources loaded dynamically -->
+        </div>
+
+        <button class="add-resource-btn" onclick="openAddModal()" title="코드 추가">+</button>
+    </div>
+
+    <!-- Add/Edit Resource Modal -->
+    <div id="resourceModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">새 리소스 추가</h2>
+            <form id="resourceForm">
+                <div class="form-group">
+                    <label for="resourceTitle">제목</label>
+                    <input type="text" id="resourceTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="resourceContent">내용</label>
+                    <textarea id="resourceContent" name="content" required placeholder="코드나 텍스트를 입력하세요..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentEditId = null;
+        let resources = [];
+
+        // Load resources from database/API
+        async function loadResources() {
+            try {
+                // TODO: Replace with actual API call
+                // const response = await fetch('/api/resources');
+                // resources = await response.json();
+                
+                // Temporary static data for demonstration
+                resources = [];
+                renderResources();
+            } catch (error) {
+                console.error('Failed to load resources:', error);
+            }
+        }
+
+        // Render resources to grid
+        function renderResources() {
+            const grid = document.getElementById('resourcesGrid');
+            
+            if (resources.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; color: #64748b; grid-column: 1/-1;">리소스가 없습니다. + 버튼을 눌러 추가하세요.</div>';
+                return;
+            }
+
+            grid.innerHTML = resources.map(resource => `
+                <div class="resource-card" data-id="${resource.id}">
+                    <div class="resource-title">
+                        <span>${escapeHtml(resource.title)}</span>
+                        <div class="card-actions">
+                            <button class="copy-btn" onclick="copyResourceContent(event)">Copy</button>
+                            <button class="edit-btn" onclick="openEditModal(${resource.id})">Edit</button>
+                            <button class="delete-btn" onclick="deleteResource(${resource.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="resource-content">${escapeHtml(resource.content)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Copy resource content
+        async function copyResourceContent(event) {
+            const button = event.target;
+            const card = button.closest('.resource-card');
+            const resourceId = parseInt(card.dataset.id, 10);
+            const resource = resources.find(r => r.id === resourceId);
+
+            if (!resource) {
+                console.error('Resource not found for copying');
+                alert('복사에 실패했습니다.');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(resource.content);
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('복사에 실패했습니다. 이 기능은 HTTPS 또는 localhost 환경에서만 동작할 수 있습니다.');
+            }
+        }
+
+        // Open add modal
+        function openAddModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = '새 리소스 추가';
+            document.getElementById('submitBtn').textContent = '추가';
+            document.getElementById('resourceForm').reset();
+            document.getElementById('resourceModal').style.display = 'block';
+        }
+
+        // Open edit modal
+        function openEditModal(id) {
+            const resource = resources.find(r => r.id === id);
+            if (!resource) return;
+
+            currentEditId = id;
+            document.getElementById('modalTitle').textContent = '리소스 수정';
+            document.getElementById('submitBtn').textContent = '수정';
+            document.getElementById('resourceTitle').value = resource.title;
+            document.getElementById('resourceContent').value = resource.content;
+            document.getElementById('resourceModal').style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('resourceModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // Handle form submission
+        document.getElementById('resourceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('resourceTitle').value.trim();
+            const content = document.getElementById('resourceContent').value.trim();
+            
+            if (!title || !content) {
+                alert('제목과 내용을 모두 입력해주세요.');
+                return;
+            }
+
+            try {
+                if (currentEditId) {
+                    await updateResource(currentEditId, { title, content });
+                } else {
+                    await addResource({ title, content });
+                }
+                closeModal();
+                renderResources();
+            } catch (error) {
+                console.error('Failed to save resource:', error);
+                alert('저장에 실패했습니다.');
+            }
+        });
+
+        // Add new resource
+        async function addResource(data) {
+            // TODO: Replace with actual API call
+            // const response = await fetch('/api/resources', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(data)
+            // });
+            
+            // Temporary local storage for demonstration
+            const newResource = {
+                id: Date.now(),
+                title: data.title,
+                content: data.content,
+                created_at: new Date().toISOString()
+            };
+            resources.push(newResource);
+        }
+
+        // Update existing resource
+        async function updateResource(id, data) {
+            // TODO: Replace with actual API call
+            // const response = await fetch(`/api/resources/${id}`, {
+            //     method: 'PUT',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(data)
+            // });
+            
+            // Temporary local update for demonstration
+            const index = resources.findIndex(r => r.id === id);
+            if (index !== -1) {
+                resources[index] = { ...resources[index], ...data };
+            }
+        }
+
+        // Delete resource
+        async function deleteResource(id) {
+            if (!confirm('이 리소스를 삭제하시겠습니까?')) return;
+
+            try {
+                // TODO: Replace with actual API call
+                // await fetch(`/api/resources/${id}`, { method: 'DELETE' });
+                
+                // Temporary local deletion for demonstration
+                resources = resources.filter(r => r.id !== id);
+                renderResources();
+            } catch (error) {
+                console.error('Failed to delete resource:', error);
+                alert('삭제에 실패했습니다.');
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('resourceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadResources);
+    </script>
+</body>
+</html>

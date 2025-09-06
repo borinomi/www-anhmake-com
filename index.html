@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +7,12 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6QG880FELE"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-6QG880FELE');
-</script>    
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-6QG880FELE');
+    </script>    
     <style>
         * {
             margin: 0;
@@ -80,11 +79,62 @@
             opacity: 0.9;
         }
 
-        .tools-grid {
+        /* Section Styles */
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .section-title {
+            background: rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-section-action {
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: #ffffff;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-section-action:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .cards-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2rem;
-            margin-bottom: 3rem;
         }
 
         .tool-card {
@@ -126,10 +176,26 @@
             transform: scaleX(1);
         }
 
+        .card-menu {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
 
-        .tool-card.coming-soon {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .card-menu:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: #1e293b;
         }
 
         .tool-content {
@@ -152,27 +218,6 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-        }
-
-        .tool-status {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-available {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .status-coming-soon {
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
         }
 
         .tool-card h3 {
@@ -203,19 +248,15 @@
             color: #7c3aed;
         }
 
-        .btn-tool.disabled {
-            color: #64748b;
-            cursor: not-allowed;
-        }
-
         .contact {
-            margin-top: 2rem;
-            color: #64748b;
-            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 3rem;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .contact a {
-            color: #3b82f6;
+            color: #ffffff;
             text-decoration: none;
         }
 
@@ -223,32 +264,128 @@
             text-decoration: underline;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #4338ca;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-primary {
+            background: #4338ca;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
-            .tools-grid {
+            .cards-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 768px) {
-            .logo {
-                width: 48px;
-                height: 48px;
-            }
-
-            .header-line:first-child {
-                font-size: 1.25rem;
-            }
-
-            .header-line:nth-child(2) {
-                font-size: 0.9rem;
-            }
-
-            .header-line:last-child {
-                font-size: 0.8rem;
-            }
-
-            .tools-grid {
+            .cards-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -257,10 +394,369 @@
             }
         }
 
-        @media (max-width: 480px) {
-            .tool-card {
-                height: auto;
-                min-height: 250px;
+        /* CSS Layers for Code Page Components */
+        @layer components, utilities;
+
+        @layer components {
+            .code-page {
+                position: fixed;
+                inset: 0;
+                background: #f8fafc;
+                z-index: 100;
+                overflow-y: auto;
+            }
+
+            .code-page .code-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 2rem;
+            }
+            
+            .code-page .back-btn {
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                margin-bottom: 1rem;
+                transition: background-color 0.3s;
+            }
+
+            .code-page .back-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            .code-page .header-content {
+                text-align: center;
+            }
+
+            .code-page .page-title {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+            }
+
+            .code-page .page-description {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+
+            .code-page .code-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            .code-page .actions-bar {
+                margin-bottom: 2rem;
+            }
+
+            .code-page .add-code-btn {
+                background: #3b82f6;
+                color: white;
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 0.75rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .code-page .add-code-btn:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+            }
+
+            .code-page .code-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .code-page .code-card {
+                background: white;
+                border: 2px solid #e2e8f0;
+                border-radius: 1rem;
+                overflow: hidden;
+                transition: all 0.3s;
+            }
+
+            .code-page .code-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                border-color: #3b82f6;
+            }
+
+            .code-page .card-header {
+                padding: 1.5rem;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .code-page .card-title {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0;
+            }
+
+            .code-page .card-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .code-page .action-btn {
+                padding: 0.5rem 1rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .code-page .action-btn.copy-btn {
+                background: #3b82f6;
+                color: white;
+            }
+
+            .code-page .action-btn.copy-btn:hover {
+                background: #2563eb;
+            }
+
+            .code-page .action-btn.copy-btn[aria-pressed="true"] {
+                background: #10b981;
+            }
+
+            .code-page .action-menu .action-trigger {
+                background: #f1f5f9;
+                color: #64748b;
+                border: none;
+                padding: 0.5rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-size: 1rem;
+            }
+
+            .code-page .action-menu .action-trigger:hover {
+                background: #e2e8f0;
+            }
+
+            .code-page .action-menu .action-list {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                list-style: none;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                z-index: 10;
+            }
+
+            .code-page .action-menu .action-list li {
+                margin: 0;
+            }
+
+            .code-page .action-menu .action-list button {
+                width: 100%;
+                text-align: left;
+                background: none;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+            }
+
+            .code-page .action-menu .action-list button:hover {
+                background: #f1f5f9;
+            }
+
+            .code-page .code-content {
+                background: #1e293b;
+                color: #e2e8f0;
+                padding: 1.5rem;
+                font-family: 'Fira Code', 'Courier New', monospace;
+                font-size: 0.875rem;
+                line-height: 1.6;
+                white-space: pre-wrap;
+                overflow-x: auto;
+                max-height: 300px;
+                overflow-y: auto;
+                margin: 0;
+            }
+
+            .code-page .code-content:focus {
+                outline: 2px solid #3b82f6;
+                outline-offset: -2px;
+            }
+
+            .code-page .empty-state {
+                grid-column: 1 / -1;
+                text-align: center;
+                padding: 3rem;
+                background: white;
+                border: 2px dashed #e2e8f0;
+                border-radius: 1rem;
+                color: #64748b;
+            }
+
+            .code-page .empty-state summary {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                cursor: pointer;
+            }
+
+            .code-page .empty-state p {
+                margin: 0;
+            }
+
+            .code-modal {
+                border: none;
+                border-radius: 1rem;
+                padding: 0;
+                max-width: 600px;
+                width: 90%;
+                backdrop-filter: blur(10px);
+            }
+
+            .code-modal .modal-form {
+                background: white;
+                border-radius: 1rem;
+                overflow: hidden;
+            }
+
+            .code-modal .modal-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .code-modal .modal-header h2 {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .code-modal .close-btn {
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: none;
+                width: 2rem;
+                height: 2rem;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 1.25rem;
+                transition: background-color 0.3s;
+            }
+
+            .code-modal .close-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            .code-modal .form-fields {
+                padding: 2rem;
+                border: none;
+            }
+            
+            .code-modal .field-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .code-modal .field-group:last-child {
+                margin-bottom: 0;
+            }
+
+            .code-modal .field-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #374151;
+            }
+
+            .code-modal .field-group input,
+            .code-modal .field-group textarea {
+                width: 100%;
+                padding: 0.75rem;
+                border: 2px solid #e5e7eb;
+                border-radius: 0.5rem;
+                font-size: 1rem;
+                transition: border-color 0.3s;
+            }
+
+            .code-modal .field-group input:focus,
+            .code-modal .field-group textarea:focus {
+                outline: none;
+                border-color: #3b82f6;
+            }
+
+            .code-modal .field-group textarea {
+                resize: vertical;
+                font-family: 'Fira Code', 'Courier New', monospace;
+                line-height: 1.5;
+            }
+
+            .code-modal .modal-actions {
+                background: #f8fafc;
+                padding: 1.5rem 2rem;
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                border-top: 1px solid #e2e8f0;
+            }
+
+            .code-modal .modal-actions button {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .code-modal .modal-actions .primary-btn {
+                background: #3b82f6;
+                color: white;
+            }
+
+            .code-modal .modal-actions .primary-btn:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+            }
+
+            .code-modal .modal-actions button:not(.primary-btn) {
+                background: #6b7280;
+                color: white;
+            }
+
+            .code-modal .modal-actions button:not(.primary-btn):hover {
+                background: #4b5563;
+            }
+
+            .code-modal::backdrop {
+                background: rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        @layer utilities {
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
             }
         }
     </style>
@@ -276,41 +772,98 @@
             </div>
         </div>
 
-        <div class="tools-grid">
-            <div class="tool-card available" onclick="window.open('./excel/', '_blank')">
-                <div class="tool-content">
-                    <div class="tool-icon"><img src="./excel/logo_Excel.png" alt="Excel Tool"></div>
-                    <h3>Excel Tool</h3>
-                    <p>Get ready to go home with Excel tools.</p>
-                </div>
-                <div class="btn-tool">Click</div>
-            </div>
+        <div id="sectionsContainer">
+            <!-- Sections will be loaded here -->
+        </div>
 
-            <div class="tool-card available" onclick="window.open('./n8n/', '_blank')">
-                <div class="tool-content">
-                    <div class="tool-icon"><img src="./n8n/logo_n8n.png" alt="n8n Tool"></div>
-                    <h3>n8n Resource Board</h3>
-                    <p>View and copy n8n workflow-related code and system messages.</p>
-                </div>
-                <div class="btn-tool">Click</div>
-            </div>
+        <!-- Add Section Button -->
+        <div style="margin-bottom: 2rem;">
+            <button class="btn-section-action" onclick="showAddSectionModal()" title="섹션 추가" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem;">+ 섹션 추가</button>
+        </div>
 
-            <div class="tool-card available" onclick="window.open('https://gpm.anhmake.com', '_blank')">
-                <div class="tool-content">
-                    <div class="tool-icon"><img src="./gpm/logo.png" alt="GPM Tool"></div>
-                    <h3>GPM - Chrome Extension</h3>
-                    <p>Chrome extension for Facebook group post management.</p>
+        <!-- Section Modal -->
+        <div id="sectionModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="sectionModalTitle" class="modal-title">섹션 추가</h3>
+                    <span class="close" onclick="closeSectionModal()">&times;</span>
                 </div>
-                <div class="btn-tool">Click</div>
+                <form id="sectionForm">
+                    <div class="form-group">
+                        <label class="form-label" for="sectionTitle">섹션 제목</label>
+                        <input type="text" id="sectionTitle" class="form-input" placeholder="섹션 제목을 입력하세요" required>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button type="button" id="deleteSectionBtn" class="btn-secondary" onclick="deleteCurrentSection()" style="background: #dc2626; display: none;">삭제</button>
+                        <div>
+                            <button type="button" class="btn-secondary" onclick="closeSectionModal()">취소</button>
+                            <button type="submit" class="btn-primary">저장</button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <div class="tool-card available" onclick="window.open('https://gpm2.anhmake.com', '_blank')">
-                <div class="tool-content">
-                    <div class="tool-icon"><img src="./gpm/logo.png" alt="GPM2 Tool"></div>
-                    <h3>GPM2 - Web application</h3>
-                    <p>Facebook group post automation system.</p>
+        <!-- Card Modal -->
+        <div id="cardModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="cardModalTitle" class="modal-title">카드 추가</h3>
+                    <span class="close" onclick="closeCardModal()">&times;</span>
                 </div>
-                <div class="btn-tool">Click</div>
+                <form id="cardForm">
+                    <div class="form-group">
+                        <label class="form-label" for="cardType">카드 타입</label>
+                        <select id="cardType" class="form-select" required>
+                            <option value="url">URL - 외부 링크</option>
+                            <option value="dashboard">Dashboard - 하위 카드 시스템</option>
+                            <option value="code">Code - 코드 스니펫 보드</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="cardTitle">제목</label>
+                        <input type="text" id="cardTitle" class="form-input" placeholder="카드 제목" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="cardDescription">설명</label>
+                        <textarea id="cardDescription" class="form-textarea" placeholder="카드 설명" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="cardIcon">아이콘 경로</label>
+                        <input type="text" id="cardIcon" class="form-input" placeholder="./path/to/icon.png (선택사항)">
+                    </div>
+                    
+                    <!-- URL specific fields -->
+                    <div id="urlFields" class="form-group">
+                        <label class="form-label" for="cardUrl">URL</label>
+                        <input type="url" id="cardUrl" class="form-input" placeholder="https://example.com">
+                    </div>
+                    
+                    <!-- Dashboard specific fields -->
+                    <div id="dashboardFields" class="form-group" style="display: none;">
+                        <label class="form-label" for="dashboardId">Dashboard ID</label>
+                        <input type="text" id="dashboardId" class="form-input" placeholder="marketing-tools">
+                        <small style="color: #64748b; font-size: 0.8rem;">영어, 숫자, 하이픈만 사용</small>
+                    </div>
+                    
+                    <!-- Code specific fields -->
+                    <div id="codeFields" class="form-group" style="display: none;">
+                        <label class="form-label" for="codeDataPath">코드 데이터 파일명</label>
+                        <input type="text" id="codeDataPath" class="form-input" placeholder="automation-scripts">
+                        <small style="color: #64748b; font-size: 0.8rem;">영어, 숫자, 하이픈만 사용</small>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button type="button" id="deleteCardBtn" class="btn-secondary" onclick="deleteCurrentCard()" style="background: #dc2626; display: none;">삭제</button>
+                        <div>
+                            <button type="button" class="btn-secondary" onclick="closeCardModal()">취소</button>
+                            <button type="submit" class="btn-primary">저장</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -318,5 +871,381 @@
             Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
         </div>
     </div>
+
+    <!-- Load Data -->
+    <script src="./data/sections.js"></script>
+    
+    <!-- Main JavaScript -->
+    <script>
+        let currentSectionId = null;
+        let currentCardId = null;
+        let currentCardSectionId = null;
+        
+        // Load and render sections
+        function loadSections() {
+            const container = document.getElementById('sectionsContainer');
+            const sections = window.sectionsData.sections;
+            
+            container.innerHTML = sections.map(section => `
+                <div class="section" data-section-id="${section.id}">
+                    <div class="section-header">
+                        <h2 class="section-title">${section.title}</h2>
+                        <div class="section-actions">
+                            <button class="btn-section-action add-card" onclick="showAddCardModal('${section.id}')" title="카드 추가">+</button>
+                            <button class="btn-section-action" onclick="showEditSectionModal('${section.id}', '${section.title}')" title="섹션 수정">⋯</button>
+                        </div>
+                    </div>
+                    <div class="cards-grid">
+                        ${section.cards.map(card => renderCard(card)).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render individual card
+        function renderCard(card) {
+            let clickAction = '';
+            switch(card.type) {
+                case 'url':
+                    clickAction = `onclick="window.open('${card.url}', '_blank')"`;
+                    break;
+                case 'dashboard':
+                    clickAction = `onclick="openDashboard('${card.dashboard_id}', '${card.title}', '${card.description}', '${card.icon}')"`;
+                    break;
+                case 'code':
+                    clickAction = `onclick="openCodeBoard('${card.code_data_path}', '${card.title}', '${card.description}')"`;
+                    break;
+            }
+            
+            return `
+                <div class="tool-card" ${clickAction}>
+                    <div class="card-menu" onclick="event.stopPropagation(); showCardMenu(event, ${card.id})" title="카드 메뉴">⋯</div>
+                    <div class="tool-content">
+                        <div class="tool-icon">
+                            <img src="${card.icon}" alt="${card.title}" onerror="this.src='./logo.png'">
+                        </div>
+                        <h3>${card.title}</h3>
+                        <p>${card.description}</p>
+                    </div>
+                    <div class="btn-tool">${card.type === 'url' ? 'Visit' : 'Open'}</div>
+                </div>
+            `;
+        }
+        
+        // Section Modal Functions
+        function showAddSectionModal() {
+            currentSectionId = null;
+            document.getElementById('sectionModalTitle').textContent = '섹션 추가';
+            document.getElementById('sectionTitle').value = '';
+            document.getElementById('deleteSectionBtn').style.display = 'none';
+            document.getElementById('sectionModal').style.display = 'block';
+        }
+        
+        function showEditSectionModal(sectionId, title) {
+            currentSectionId = sectionId;
+            document.getElementById('sectionModalTitle').textContent = '섹션 수정';
+            document.getElementById('sectionTitle').value = title;
+            document.getElementById('deleteSectionBtn').style.display = 'block';
+            document.getElementById('sectionModal').style.display = 'block';
+        }
+        
+        function closeSectionModal() {
+            document.getElementById('sectionModal').style.display = 'none';
+            document.getElementById('deleteSectionBtn').style.display = 'none';
+            currentSectionId = null;
+        }
+        
+        // Section Form Handler
+        document.getElementById('sectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const title = document.getElementById('sectionTitle').value.trim();
+            
+            if (!title) {
+                alert('섹션 제목을 입력해주세요.');
+                return;
+            }
+            
+            if (currentSectionId) {
+                updateSection(currentSectionId, title);
+            } else {
+                addNewSection(title);
+            }
+            
+            closeSectionModal();
+        });
+        
+        // Section Management Functions
+        function addNewSection(title) {
+            const newSection = {
+                id: 'section_' + Date.now(),
+                title: title,
+                order: window.sectionsData.sections.length + 1,
+                cards: []
+            };
+            
+            window.sectionsData.sections.push(newSection);
+            saveSectionsData();
+            loadSections();
+        }
+        
+        function updateSection(sectionId, title) {
+            const section = window.sectionsData.sections.find(s => s.id === sectionId);
+            if (section) {
+                section.title = title;
+                saveSectionsData();
+                loadSections();
+            }
+        }
+        
+        function deleteSection(sectionId) {
+            if (confirm('이 섹션을 삭제하시겠습니까? 섹션 내의 모든 카드도 함께 삭제됩니다.')) {
+                window.sectionsData.sections = window.sectionsData.sections.filter(s => s.id !== sectionId);
+                saveSectionsData();
+                loadSections();
+            }
+        }
+        
+        function deleteCurrentSection() {
+            if (currentSectionId) {
+                deleteSection(currentSectionId);
+                closeSectionModal();
+            }
+        }
+        
+        // Card Modal Functions
+        function showAddCardModal(sectionId) {
+            currentCardId = null;
+            currentCardSectionId = sectionId;
+            document.getElementById('cardModalTitle').textContent = '카드 추가';
+            document.getElementById('deleteCardBtn').style.display = 'none';
+            resetCardForm();
+            document.getElementById('cardModal').style.display = 'block';
+        }
+        
+        function showEditCardModal(cardId, sectionId) {
+            currentCardId = cardId;
+            currentCardSectionId = sectionId;
+            document.getElementById('cardModalTitle').textContent = '카드 수정';
+            document.getElementById('deleteCardBtn').style.display = 'block';
+            
+            // Load card data
+            const section = window.sectionsData.sections.find(s => s.id === sectionId);
+            const card = section.cards.find(c => c.id === cardId);
+            
+            if (card) {
+                document.getElementById('cardType').value = card.type;
+                document.getElementById('cardTitle').value = card.title;
+                document.getElementById('cardDescription').value = card.description;
+                document.getElementById('cardIcon').value = card.icon || '';
+                
+                // Load type-specific data
+                if (card.type === 'url') {
+                    document.getElementById('cardUrl').value = card.url || '';
+                } else if (card.type === 'dashboard') {
+                    document.getElementById('dashboardId').value = card.dashboard_id || '';
+                } else if (card.type === 'code') {
+                    document.getElementById('codeDataPath').value = card.code_data_path || '';
+                }
+                
+                updateCardForm();
+            }
+            
+            document.getElementById('cardModal').style.display = 'block';
+        }
+        
+        function closeCardModal() {
+            document.getElementById('cardModal').style.display = 'none';
+            document.getElementById('deleteCardBtn').style.display = 'none';
+            currentCardId = null;
+            currentCardSectionId = null;
+        }
+        
+        function resetCardForm() {
+            document.getElementById('cardForm').reset();
+            updateCardForm();
+        }
+        
+        function updateCardForm() {
+            const cardType = document.getElementById('cardType').value;
+            
+            // Hide all type-specific fields
+            document.getElementById('urlFields').style.display = 'none';
+            document.getElementById('dashboardFields').style.display = 'none';
+            document.getElementById('codeFields').style.display = 'none';
+            
+            // Show relevant fields
+            if (cardType === 'url') {
+                document.getElementById('urlFields').style.display = 'block';
+            } else if (cardType === 'dashboard') {
+                document.getElementById('dashboardFields').style.display = 'block';
+            } else if (cardType === 'code') {
+                document.getElementById('codeFields').style.display = 'block';
+            }
+        }
+        
+        // Card Form Handler
+        document.getElementById('cardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('cardType').value;
+            const title = document.getElementById('cardTitle').value.trim();
+            const description = document.getElementById('cardDescription').value.trim();
+            const icon = document.getElementById('cardIcon').value.trim() || './logo.png';
+            
+            if (!title) {
+                alert('카드 제목을 입력해주세요.');
+                return;
+            }
+            
+            if (!description) {
+                alert('카드 설명을 입력해주세요.');
+                return;
+            }
+            
+            const cardData = {
+                type: type,
+                title: title,
+                description: description,
+                icon: icon,
+                created_at: new Date().toISOString().split('T')[0]
+            };
+            
+            // Add type-specific data
+            if (type === 'url') {
+                const url = document.getElementById('cardUrl').value.trim();
+                if (!url) {
+                    alert('URL을 입력해주세요.');
+                    return;
+                }
+                cardData.url = url;
+            } else if (type === 'dashboard') {
+                const dashboardId = document.getElementById('dashboardId').value.trim();
+                if (!dashboardId) {
+                    alert('Dashboard ID를 입력해주세요.');
+                    return;
+                }
+                if (!/^[a-z0-9-]+$/.test(dashboardId)) {
+                    alert('Dashboard ID는 영어 소문자, 숫자, 하이픈만 사용할 수 있습니다.');
+                    return;
+                }
+                cardData.dashboard_id = dashboardId;
+            } else if (type === 'code') {
+                const codeDataPath = document.getElementById('codeDataPath').value.trim();
+                if (!codeDataPath) {
+                    alert('코드 데이터 파일명을 입력해주세요.');
+                    return;
+                }
+                if (!/^[a-z0-9-]+$/.test(codeDataPath)) {
+                    alert('파일명은 영어 소문자, 숫자, 하이픈만 사용할 수 있습니다.');
+                    return;
+                }
+                cardData.code_data_path = codeDataPath;
+            }
+            
+            if (currentCardId) {
+                updateCard(currentCardSectionId, currentCardId, cardData);
+            } else {
+                addNewCard(currentCardSectionId, cardData);
+            }
+            
+            closeCardModal();
+        });
+        
+        // Card Management Functions
+        function addNewCard(sectionId, cardData) {
+            const section = window.sectionsData.sections.find(s => s.id === sectionId);
+            if (section) {
+                cardData.id = Date.now();
+                section.cards.push(cardData);
+                saveSectionsData();
+                loadSections();
+            }
+        }
+        
+        function updateCard(sectionId, cardId, cardData) {
+            const section = window.sectionsData.sections.find(s => s.id === sectionId);
+            if (section) {
+                const cardIndex = section.cards.findIndex(c => c.id === cardId);
+                if (cardIndex !== -1) {
+                    section.cards[cardIndex] = { ...section.cards[cardIndex], ...cardData };
+                    saveSectionsData();
+                    loadSections();
+                }
+            }
+        }
+        
+        function deleteCard(sectionId, cardId) {
+            if (confirm('이 카드를 삭제하시겠습니까?')) {
+                const section = window.sectionsData.sections.find(s => s.id === sectionId);
+                if (section) {
+                    section.cards = section.cards.filter(c => c.id !== cardId);
+                    saveSectionsData();
+                    loadSections();
+                }
+            }
+        }
+        
+        function deleteCurrentCard() {
+            if (currentCardId && currentCardSectionId) {
+                deleteCard(currentCardSectionId, currentCardId);
+                closeCardModal();
+            }
+        }
+        
+        // Card Menu Functions
+        function showCardMenu(event, cardId) {
+            let cardSectionId = null;
+            for (const section of window.sectionsData.sections) {
+                if (section.cards.find(c => c.id === cardId)) {
+                    cardSectionId = section.id;
+                    break;
+                }
+            }
+            
+            if (cardSectionId) {
+                showEditCardModal(cardId, cardSectionId);
+            }
+        }
+        
+        // Data Management Functions
+        function saveSectionsData() {
+            localStorage.setItem('sectionsData', JSON.stringify(window.sectionsData));
+        }
+        
+        function loadSectionsData() {
+            const stored = localStorage.getItem('sectionsData');
+            if (stored) {
+                try {
+                    const parsedData = JSON.parse(stored);
+                    window.sectionsData = {
+                        ...window.sectionsData,
+                        sections: parsedData.sections || window.sectionsData.sections
+                    };
+                } catch (e) {
+                    console.log('Could not parse stored data, using default');
+                }
+            }
+        }
+        
+        function openDashboard(dashboardId, title, description, icon) {
+            alert('Dashboard 기능은 준비중입니다.');
+        }
+        
+        function openCodeBoard(codeDataPath, title, description) {
+            window.open('n8n/rag.html', '_blank');
+        }
+
+        
+        // Event Listeners
+        document.getElementById('cardType').addEventListener('change', updateCardForm);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSectionsData();
+            loadSections();
+            updateCardForm();
+        });
+        
+    </script>
 </body>
 </html>
