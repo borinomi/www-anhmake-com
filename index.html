@@ -885,24 +885,71 @@
         let currentCardSectionId = null;
         
         // Load and render sections
-        function loadSections() {
+        async function loadSections() {
             const container = document.getElementById('sectionsContainer');
-            const sections = window.sectionsData.sections;
             
-            container.innerHTML = sections.map(section => `
-                <div class="section" data-section-id="${section.id}">
-                    <div class="section-header">
-                        <h2 class="section-title">${section.title}</h2>
-                        <div class="section-actions">
-                            <button class="btn-section-action add-card" onclick="showAddCardModal('${section.id}')" title="카드 추가">+</button>
-                            <button class="btn-section-action" onclick="showEditSectionModal('${section.id}', '${section.title}')" title="섹션 수정">⋯</button>
+            try {
+                // Load cards from Supabase
+                const [cardsResponse, urlsResponse] = await Promise.all([
+                    fetch('/api/cards?section_id=tools'),
+                    fetch('/api/urls?section_id=tools')
+                ]);
+                
+                const cardsData = cardsResponse.ok ? await cardsResponse.json() : [];
+                const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
+                
+                // Combine with hardcoded sections data
+                const sections = window.sectionsData.sections.map(section => ({
+                    ...section,
+                    cards: [
+                        ...section.cards, // Keep hardcoded cards (like Excel)
+                        // Add database cards
+                        ...cardsData.map(card => ({
+                            ...card,
+                            type: 'dashboard' // Cards from /api/cards are dashboard type
+                        })),
+                        // Add database URLs
+                        ...urlsData.map(url => ({
+                            ...url,
+                            type: 'url'
+                        }))
+                    ]
+                }));
+                
+                container.innerHTML = sections.map(section => `
+                    <div class="section" data-section-id="${section.id}">
+                        <div class="section-header">
+                            <h2 class="section-title">${section.title}</h2>
+                            <div class="section-actions">
+                                <button class="btn-section-action add-card" onclick="showAddCardModal('${section.id}')" title="카드 추가">+</button>
+                                <button class="btn-section-action" onclick="showEditSectionModal('${section.id}', '${section.title}')" title="섹션 수정">⋯</button>
+                            </div>
+                        </div>
+                        <div class="cards-grid">
+                            ${section.cards.map(card => renderCard(card)).join('')}
                         </div>
                     </div>
-                    <div class="cards-grid">
-                        ${section.cards.map(card => renderCard(card)).join('')}
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading sections:', error);
+                // Fallback to static data
+                const sections = window.sectionsData.sections;
+                container.innerHTML = sections.map(section => `
+                    <div class="section" data-section-id="${section.id}">
+                        <div class="section-header">
+                            <h2 class="section-title">${section.title}</h2>
+                            <div class="section-actions">
+                                <button class="btn-section-action add-card" onclick="showAddCardModal('${section.id}')" title="카드 추가">+</button>
+                                <button class="btn-section-action" onclick="showEditSectionModal('${section.id}', '${section.title}')" title="섹션 수정">⋯</button>
+                            </div>
+                        </div>
+                        <div class="cards-grid">
+                            ${section.cards.map(card => renderCard(card)).join('')}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
         
         // Render individual card
@@ -1022,6 +1069,7 @@
             document.getElementById('cardModalTitle').textContent = '카드 추가';
             document.getElementById('deleteCardBtn').style.display = 'none';
             resetCardForm();
+            loadAvailableIcons();
             document.getElementById('cardModal').style.display = 'block';
         }
         
@@ -1031,6 +1079,9 @@
             document.getElementById('cardModalTitle').textContent = '카드 수정';
             document.getElementById('deleteCardBtn').style.display = 'block';
             
+            // Load available icons first
+            loadAvailableIcons();
+            
             // Load card data
             const section = window.sectionsData.sections.find(s => s.id === sectionId);
             const card = section.cards.find(c => c.id === cardId);
@@ -1039,7 +1090,11 @@
                 document.getElementById('cardType').value = card.type;
                 document.getElementById('cardTitle').value = card.title;
                 document.getElementById('cardDescription').value = card.description;
-                // document.getElementById('cardIcon').value = card.icon || ''; // This line will be replaced
+                
+                // Set icon after loading available icons
+                setTimeout(() => {
+                    document.getElementById('cardIcon').value = card.icon || 'logo.png';
+                }, 100);
                 
                 // Load type-specific data
                 if (card.type === 'url') {
@@ -1155,13 +1210,62 @@
         });
         
         // Card Management Functions
-        function addNewCard(sectionId, cardData) {
-            const section = window.sectionsData.sections.find(s => s.id === sectionId);
-            if (section) {
-                cardData.id = Date.now();
-                section.cards.push(cardData);
-                saveSectionsData();
-                loadSections();
+        async function addNewCard(sectionId, cardData) {
+            try {
+                let response;
+                
+                if (cardData.type === 'url') {
+                    // Create URL card via API
+                    response = await fetch('/api/urls', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            section_id: sectionId,
+                            title: cardData.title,
+                            url: cardData.url,
+                            description: cardData.description,
+                            icon: cardData.icon
+                        })
+                    });
+                } else if (cardData.type === 'dashboard') {
+                    // Create Dashboard card via API  
+                    response = await fetch('/api/cards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            section_id: sectionId,
+                            title: cardData.title,
+                            description: cardData.description,
+                            icon: cardData.icon
+                        })
+                    });
+                } else if (cardData.type === 'code') {
+                    // Create Dashboard card first, then code snippets are created separately
+                    response = await fetch('/api/cards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            section_id: sectionId,
+                            title: cardData.title,
+                            description: cardData.description,
+                            icon: cardData.icon
+                        })
+                    });
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                alert('카드가 성공적으로 생성되었습니다!');
+                
+                // Refresh the page to show new data
+                location.reload();
+                
+            } catch (error) {
+                console.error('Error creating card:', error);
+                alert('카드 생성에 실패했습니다: ' + error.message);
             }
         }
         
@@ -1237,46 +1341,49 @@
         function openCodeBoard(cardId, title, description) {
             window.open(`./code/template.html?id=${cardId}`, '_blank');
         }
-
         
-        // Event Listeners
-        document.getElementById('cardType').addEventListener('change', updateCardForm);
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSectionsData();
-            loadSections();
-            updateCardForm();
-        });
-        
-    </script>
-</body>
-</html>pt>
-</body>
-</html>ment('option');
-                    option.value = iconPath;
-                    option.textContent = iconPath.split('/').pop(); // Display filename
-                    cardIconSelect.appendChild(option);
+        // Load available icons
+        async function loadAvailableIcons() {
+            try {
+                const iconSelect = document.getElementById('cardIcon');
+                // Clear existing options except the first one
+                while (iconSelect.children.length > 1) {
+                    iconSelect.removeChild(iconSelect.lastChild);
+                }
+                
+                // Available icons in the icon folder
+                const availableIcons = [
+                    'logo.png',
+                    'logo_Excel.png', 
+                    'logo_Youtube.png',
+                    'logo_code.png',
+                    'logo_link.png',
+                    'logo_n8n.png',
+                    'logo-gpm.png'
+                ];
+                
+                // Add each icon as an option
+                availableIcons.forEach(iconName => {
+                    if (iconName !== 'logo.png') { // Skip default icon as it's already added
+                        const option = document.createElement('option');
+                        option.value = iconName;
+                        option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
+                        iconSelect.appendChild(option);
+                    }
                 });
+                
             } catch (error) {
                 console.error('Error loading icons:', error);
-                // Optionally, alert the user or log to console
             }
         }
 
-        function openCodeBoard(codeDataPath, title, description) {
-            // The codeDataPath is the filename without extension
-            window.open(`./code/template.html?id=${codeDataPath}`, '_blank');
-        }
-
         
         // Event Listeners
         document.getElementById('cardType').addEventListener('change', updateCardForm);
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadSectionsData();
-            loadSections();
+            loadSections(); // Load directly from Supabase + static data
             updateCardForm();
         });
         
