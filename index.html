@@ -1232,6 +1232,41 @@
         }
         
         function openCodeBoard(codeDataPath, title, description) {
+            // The codeDataPath is the filename without extension
+            window.open(`./code/${codeDataPath}.html`, '_blank');
+        }
+
+        
+        // Event Listeners
+        document.getElementById('cardType').addEventListener('change', updateCardForm);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSectionsData();
+            loadSections();
+            updateCardForm();
+        });
+        
+    </script>
+</body>
+</html>     if (stored) {
+                try {
+                    const parsedData = JSON.parse(stored);
+                    window.sectionsData = {
+                        ...window.sectionsData,
+                        sections: parsedData.sections || window.sectionsData.sections
+                    };
+                } catch (e) {
+                    console.log('Could not parse stored data, using default');
+                }
+            }
+        }
+        
+        function openDashboard(dashboardId, title, description, icon) {
+            alert('Dashboard 기능은 준비중입니다.');
+        }
+        
+        function openCodeBoard(codeDataPath, title, description) {
             window.open('n8n/rag.html', '_blank');
         }
 
