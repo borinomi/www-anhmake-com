@@ -437,9 +437,16 @@
             }
         }
 
-        // Placeholder functions for card/section management
+        // Card management functions
         function addCard(sectionId) {
-            alert('카드 추가 기능 준비중');
+            const choice = confirm('어떤 타입을 추가하시겠습니까?\nOK: URL 링크\nCancel: 코드 스니펫');
+            if (choice) {
+                // Add URL
+                window.open(`../index.html#add-url-${sectionId}`, '_self');
+            } else {
+                // Add Code Snippet  
+                window.open(`../code/template.html?create=true&parent_id=${dashboardId}`, '_blank');
+            }
         }
 
         function editCard(cardId) {

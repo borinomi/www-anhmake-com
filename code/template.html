@@ -169,6 +169,78 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
+        /* Create Form Styles */
+        .create-form {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .save-btn, .cancel-btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .save-btn {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #2563eb;
+        }
+
+        .cancel-btn {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .cancel-btn:hover {
+            background: #cbd5e1;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             body {
@@ -338,8 +410,80 @@
             return div.innerHTML;
         }
 
+        // Show create form if create=true parameter
+        function showCreateForm() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const parentId = urlParams.get('parent_id');
+            
+            document.getElementById('codeTitle').textContent = '새 코드 스니펫 작성';
+            document.getElementById('codeDescription').textContent = '새로운 코드 스니펫을 작성해보세요.';
+            
+            const contentContainer = document.getElementById('contentContainer');
+            contentContainer.innerHTML = `
+                <div class="create-form">
+                    <div class="form-group">
+                        <label for="titleInput">제목:</label>
+                        <input type="text" id="titleInput" placeholder="코드 스니펫 제목을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="contentInput">코드:</label>
+                        <textarea id="contentInput" placeholder="코드를 입력하세요..." rows="20"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button onclick="saveCodeSnippet('${parentId}')" class="save-btn">저장</button>
+                        <button onclick="window.close()" class="cancel-btn">취소</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Save code snippet
+        async function saveCodeSnippet(parentId) {
+            const title = document.getElementById('titleInput').value.trim();
+            const content = document.getElementById('contentInput').value.trim();
+            
+            if (!title || !content) {
+                alert('제목과 코드 내용을 모두 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/code-snippets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        card_id: parentId,
+                        icon: 'code.png'
+                    }),
+                });
+                
+                if (response.ok) {
+                    alert('코드 스니펫이 저장되었습니다.');
+                    window.close();
+                } else {
+                    throw new Error('저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error saving code snippet:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            }
+        }
+
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', loadCodeSnippet);
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isCreate = urlParams.get('create') === 'true';
+            
+            if (isCreate) {
+                showCreateForm();
+            } else {
+                loadCodeSnippet();
+            }
+        });
     </script>
 </body>
 </html>
