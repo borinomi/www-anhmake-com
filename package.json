@@ -1,0 +1,17 @@
+{
+  "name": "anhmake-website",
+  "version": "1.0.0",
+  "description": "ANHMAKE website with Supabase integration",
+  "main": "index.html",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build process required'"
+  },
+  "keywords": ["website", "supabase"],
+  "author": "ANHMAKE",
+  "license": "MIT"
+}

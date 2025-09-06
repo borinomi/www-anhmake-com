@@ -8,22 +8,58 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-
+  const { method } = req;
+  
   try {
-    const { id, section_id, title, description, icon, created_at } = req.body;
+    switch (method) {
+      case 'GET':
+        return await handleGet(req, res);
+      case 'POST':
+        return await handlePost(req, res);
+      default:
+        res.setHeader('Allow', ['GET', 'POST']);
+        return res.status(405).end(`Method ${method} Not Allowed`);
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// GET /api/cards?section_id=xxx
+async function handleGet(req, res) {
+  const { section_id } = req.query;
+  
+  if (!section_id) {
+    return res.status(400).json({ error: 'section_id is required' });
+  }
+  
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .eq('section_id', section_id)
+    .order('created_at', { ascending: true });
+  
+  if (error) {
+    console.error('Cards fetch error:', error);
+    return res.status(500).json({ error: 'Failed to fetch cards' });
+  }
+  
+  return res.status(200).json(data || []);
+}
+
+// POST /api/cards
+async function handlePost(req, res) {
+  try {
+    const { section_id, title, description, icon, created_at } = req.body;
 
     // Basic validation for dashboard cards
-    if (!id || !section_id || !title || !description) {
+    if (!section_id || !title || !description) {
       return res.status(400).json({ error: 'Missing required dashboard card fields.' });
     }
 
     // Prepare data for insertion into 'cards' table (dashboard only)
     const cardDataToInsert = {
-      id: id,
       section_id: section_id,
       title: title,
       description: description,

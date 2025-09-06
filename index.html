@@ -845,19 +845,6 @@
                         <input type="url" id="cardUrl" class="form-input" placeholder="https://example.com">
                     </div>
                     
-                    <!-- Dashboard specific fields -->
-                    <div id="dashboardFields" class="form-group" style="display: none;">
-                        <label class="form-label" for="dashboardId">Dashboard ID</label>
-                        <input type="text" id="dashboardId" class="form-input" placeholder="marketing-tools">
-                        <small style="color: #64748b; font-size: 0.8rem;">영어, 숫자, 하이픈만 사용</small>
-                    </div>
-                    
-                    <!-- Code specific fields -->
-                    <div id="codeFields" class="form-group" style="display: none;">
-                        <label class="form-label" for="codeDataPath">코드 데이터 파일명</label>
-                        <input type="text" id="codeDataPath" class="form-input" placeholder="automation-scripts">
-                        <small style="color: #64748b; font-size: 0.8rem;">영어, 숫자, 하이픈만 사용</small>
-                    </div>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <button type="button" id="deleteCardBtn" class="btn-secondary" onclick="deleteCurrentCard()" style="background: #dc2626; display: none;">삭제</button>
@@ -1099,11 +1086,8 @@
                 // Load type-specific data
                 if (card.type === 'url') {
                     document.getElementById('cardUrl').value = card.url || '';
-                } else if (card.type === 'dashboard') {
-                    document.getElementById('dashboardId').value = card.dashboard_id || '';
-                } else if (card.type === 'code') {
-                    document.getElementById('codeDataPath').value = card.code_data_path || '';
                 }
+                // Dashboard and Code cards don't have additional fields to load
                 
                 updateCardForm();
             }
@@ -1128,17 +1112,12 @@
             
             // Hide all type-specific fields
             document.getElementById('urlFields').style.display = 'none';
-            document.getElementById('dashboardFields').style.display = 'none';
-            document.getElementById('codeFields').style.display = 'none';
             
             // Show relevant fields
             if (cardType === 'url') {
                 document.getElementById('urlFields').style.display = 'block';
-            } else if (cardType === 'dashboard') {
-                document.getElementById('dashboardFields').style.display = 'block';
-            } else if (cardType === 'code') {
-                document.getElementById('codeFields').style.display = 'block';
             }
+            // Dashboard and Code cards don't need additional fields
         }
         
         // Card Form Handler
@@ -1176,29 +1155,8 @@
                     return;
                 }
                 cardData.url = url;
-            } else if (type === 'dashboard') {
-                const dashboardId = document.getElementById('dashboardId').value.trim();
-                if (!dashboardId) {
-                    alert('Dashboard ID를 입력해주세요.');
-                    return;
-                }
-                if (!/^[a-z0-9-]+$/.test(dashboardId)) {
-                    alert('Dashboard ID는 영어 소문자, 숫자, 하이픈만 사용할 수 있습니다.');
-                    return;
-                }
-                cardData.dashboard_id = dashboardId;
-            } else if (type === 'code') {
-                const codeDataPath = document.getElementById('codeDataPath').value.trim();
-                if (!codeDataPath) {
-                    alert('코드 데이터 파일명을 입력해주세요.');
-                    return;
-                }
-                if (!/^[a-z0-9-]+$/.test(codeDataPath)) {
-                    alert('파일명은 영어 소문자, 숫자, 하이픈만 사용할 수 있습니다.');
-                    return;
-                }
-                cardData.code_data_path = codeDataPath;
             }
+            // Dashboard and Code cards don't need additional data
             
             if (currentCardId) {
                 updateCard(currentCardSectionId, currentCardId, cardData);
@@ -1258,14 +1216,13 @@
                 }
                 
                 const result = await response.json();
-                alert('카드가 성공적으로 생성되었습니다!');
                 
                 // Refresh the page to show new data
                 location.reload();
                 
             } catch (error) {
                 console.error('Error creating card:', error);
-                alert('카드 생성에 실패했습니다: ' + error.message);
+                // Error handling without alert - just log to console
             }
         }
         
