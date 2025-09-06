@@ -1021,24 +1021,21 @@
             };
             
             window.sectionsData.sections.push(newSection);
-            saveSectionsData();
-            loadSections();
+                        loadSections();
         }
         
         function updateSection(sectionId, title) {
             const section = window.sectionsData.sections.find(s => s.id === sectionId);
             if (section) {
                 section.title = title;
-                saveSectionsData();
-                loadSections();
+                                loadSections();
             }
         }
         
         function deleteSection(sectionId) {
             if (confirm('이 섹션을 삭제하시겠습니까? 섹션 내의 모든 카드도 함께 삭제됩니다.')) {
                 window.sectionsData.sections = window.sectionsData.sections.filter(s => s.id !== sectionId);
-                saveSectionsData();
-                loadSections();
+                                loadSections();
             }
         }
         
@@ -1060,7 +1057,7 @@
             document.getElementById('cardModal').style.display = 'block';
         }
         
-        function showEditCardModal(cardId, sectionId) {
+        async function showEditCardModal(cardId, sectionId) {
             currentCardId = cardId;
             currentCardSectionId = sectionId;
             document.getElementById('cardModalTitle').textContent = '카드 수정';
@@ -1069,27 +1066,58 @@
             // Load available icons first
             loadAvailableIcons();
             
-            // Load card data
-            const section = window.sectionsData.sections.find(s => s.id === sectionId);
-            const card = section.cards.find(c => c.id === cardId);
-            
-            if (card) {
-                document.getElementById('cardType').value = card.type;
-                document.getElementById('cardTitle').value = card.title;
-                document.getElementById('cardDescription').value = card.description;
+            try {
+                // Try to load card from database APIs
+                let card = null;
                 
-                // Set icon after loading available icons
-                setTimeout(() => {
-                    document.getElementById('cardIcon').value = card.icon || 'logo.png';
-                }, 100);
-                
-                // Load type-specific data
-                if (card.type === 'url') {
-                    document.getElementById('cardUrl').value = card.url || '';
+                // Check if it's a URL card
+                const urlResponse = await fetch(`/api/urls?section_id=${sectionId}`);
+                if (urlResponse.ok) {
+                    const urls = await urlResponse.json();
+                    card = urls.find(u => u.id == cardId);
+                    if (card) card.type = 'url';
                 }
-                // Dashboard and Code cards don't have additional fields to load
                 
-                updateCardForm();
+                // If not found, check if it's a Dashboard/Code card  
+                if (!card) {
+                    const cardsResponse = await fetch(`/api/cards?section_id=${sectionId}`);
+                    if (cardsResponse.ok) {
+                        const cards = await cardsResponse.json();
+                        card = cards.find(c => c.id == cardId);
+                        if (card) card.type = 'dashboard'; // Default to dashboard for cards table
+                    }
+                }
+                
+                // Fallback to static data
+                if (!card) {
+                    const section = window.sectionsData.sections.find(s => s.id === sectionId);
+                    if (section) {
+                        card = section.cards.find(c => c.id == cardId);
+                    }
+                }
+                
+                if (card) {
+                    document.getElementById('cardType').value = card.type || 'dashboard';
+                    document.getElementById('cardTitle').value = card.title || '';
+                    document.getElementById('cardDescription').value = card.description || '';
+                    
+                    // Set icon after loading available icons
+                    setTimeout(() => {
+                        document.getElementById('cardIcon').value = card.icon || 'logo.png';
+                    }, 100);
+                    
+                    // Load type-specific data
+                    if (card.type === 'url') {
+                        document.getElementById('cardUrl').value = card.url || '';
+                    }
+                    
+                    updateCardForm();
+                } else {
+                    console.error('Card not found:', cardId);
+                }
+                
+            } catch (error) {
+                console.error('Error loading card data:', error);
             }
             
             document.getElementById('cardModal').style.display = 'block';
@@ -1232,64 +1260,81 @@
                 const cardIndex = section.cards.findIndex(c => c.id === cardId);
                 if (cardIndex !== -1) {
                     section.cards[cardIndex] = { ...section.cards[cardIndex], ...cardData };
-                    saveSectionsData();
-                    loadSections();
+                                        loadSections();
                 }
             }
         }
         
-        function deleteCard(sectionId, cardId) {
-            if (confirm('이 카드를 삭제하시겠습니까?')) {
-                const section = window.sectionsData.sections.find(s => s.id === sectionId);
-                if (section) {
-                    section.cards = section.cards.filter(c => c.id !== cardId);
-                    saveSectionsData();
-                    loadSections();
+        async function deleteCard(sectionId, cardId) {
+            try {
+                // First determine what type of card this is by checking APIs
+                let cardType = null;
+                
+                // Check if it's a URL card
+                const urlResponse = await fetch(`/api/urls?section_id=${sectionId}`);
+                if (urlResponse.ok) {
+                    const urls = await urlResponse.json();
+                    const urlCard = urls.find(u => u.id == cardId);
+                    if (urlCard) cardType = 'url';
                 }
+                
+                // If not URL, check if it's a Dashboard/Code card
+                if (!cardType) {
+                    const cardsResponse = await fetch(`/api/cards?section_id=${sectionId}`);
+                    if (cardsResponse.ok) {
+                        const cards = await cardsResponse.json();
+                        const dashboardCard = cards.find(c => c.id == cardId);
+                        if (dashboardCard) cardType = 'dashboard';
+                    }
+                }
+                
+                if (!cardType) {
+                    alert('카드를 찾을 수 없습니다.');
+                    return;
+                }
+                
+                // Delete from appropriate API endpoint
+                let deleteResponse;
+                if (cardType === 'url') {
+                    deleteResponse = await fetch(`/api/urls/${cardId}`, {
+                        method: 'DELETE'
+                    });
+                } else if (cardType === 'dashboard') {
+                    deleteResponse = await fetch(`/api/cards/${cardId}`, {
+                        method: 'DELETE'
+                    });
+                }
+                
+                if (deleteResponse && deleteResponse.ok) {
+                    loadSections(); // Reload to reflect changes
+                } else {
+                    alert('카드 삭제에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                alert('카드 삭제 중 오류가 발생했습니다.');
             }
         }
         
-        function deleteCurrentCard() {
+        async function deleteCurrentCard() {
             if (currentCardId && currentCardSectionId) {
-                deleteCard(currentCardSectionId, currentCardId);
-                closeCardModal();
+                if (confirm('이 카드를 삭제하시겠습니까?')) {
+                    await deleteCard(currentCardSectionId, currentCardId);
+                    closeCardModal();
+                }
             }
         }
         
-        // Card Menu Functions
+        // Card Menu Functions - simplified to directly show edit modal
         function showCardMenu(event, cardId) {
-            let cardSectionId = null;
-            for (const section of window.sectionsData.sections) {
-                if (section.cards.find(c => c.id === cardId)) {
-                    cardSectionId = section.id;
-                    break;
-                }
-            }
-            
-            if (cardSectionId) {
-                showEditCardModal(cardId, cardSectionId);
-            }
+            // For now, assume all cards are in 'tools' section
+            // TODO: Could be enhanced to determine actual section dynamically
+            showEditCardModal(cardId, 'tools');
         }
         
         // Data Management Functions
-        function saveSectionsData() {
-            localStorage.setItem('sectionsData', JSON.stringify(window.sectionsData));
-        }
-        
-        function loadSectionsData() {
-            const stored = localStorage.getItem('sectionsData');
-            if (stored) {
-                try {
-                    const parsedData = JSON.parse(stored);
-                    window.sectionsData = {
-                        ...window.sectionsData,
-                        sections: parsedData.sections || window.sectionsData.sections
-                    };
-                } catch (e) {
-                    console.log('Could not parse stored data, using default');
-                }
-            }
-        }
+        // All data is now handled through APIs - localStorage removed
         
         function openDashboard(cardId, title, description, icon) {
             window.open(`./dashboard/template.html?id=${cardId}`, '_blank');
