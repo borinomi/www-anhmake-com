@@ -735,36 +735,45 @@
         }
 
         async function editCard(cardId) {
-            // Find card in current sections
-            let foundCard = null;
-            for (const section of pageData.data_json?.sections || []) {
-                foundCard = section.cards?.find(c => c.id == cardId);
-                if (foundCard) break;
-            }
-            
-            if (!foundCard) {
-                alert('카드를 찾을 수 없습니다.');
-                return;
-            }
-            
             currentCardId = cardId;
-            currentCardSectionId = 'main';
-            
+            currentCardSectionId = null; // Will be set from card data
             document.getElementById('cardModalTitle').textContent = '카드 수정';
             document.getElementById('deleteCardBtn').style.display = 'block';
             
-            // Populate form with card data
-            document.getElementById('cardType').value = foundCard.type || 'url';
-            document.getElementById('cardTitle').value = foundCard.title || '';
-            document.getElementById('cardDescription').value = foundCard.description || '';
-            document.getElementById('cardIcon').value = foundCard.icon || 'logo.png';
-            
-            if (foundCard.type === 'url') {
-                document.getElementById('cardUrl').value = foundCard.url || '';
-            }
-            
-            updateCardForm();
+            // Load available icons first
             loadAvailableIcons();
+            
+            try {
+                // Use unified cards API to get card data
+                const cardResponse = await fetch(`/api/cards/${cardId}`);
+                
+                if (!cardResponse.ok) {
+                    alert('카드를 찾을 수 없습니다.');
+                    return;
+                }
+                
+                const card = await cardResponse.json();
+                
+                document.getElementById('cardType').value = card.type || 'dashboard';
+                document.getElementById('cardTitle').value = card.title || '';
+                document.getElementById('cardDescription').value = card.description || '';
+                
+                // Set icon after loading available icons
+                setTimeout(() => {
+                    document.getElementById('cardIcon').value = card.icon || 'logo.png';
+                }, 100);
+                
+                // Load type-specific data
+                if (card.type === 'url') {
+                    document.getElementById('cardUrl').value = card.url || '';
+                }
+                
+                updateCardForm();
+                
+            } catch (error) {
+                console.error('Error loading card data:', error);
+                alert('카드 데이터를 불러오는 중 오류가 발생했습니다.');
+            }
             
             document.getElementById('cardModal').style.display = 'block';
         }
