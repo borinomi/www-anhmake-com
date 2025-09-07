@@ -28,19 +28,15 @@ module.exports = async function handler(req, res) {
   }
 }
 
-// GET /api/cards?section_id=xxx&card_id=xxx
+// GET /api/cards?section_id=xxx
 async function handleGet(req, res) {
-  const { section_id, card_id } = req.query;
+  const { section_id } = req.query;
   
-  let query = supabase.from('cards').select('*');
-  
-  if (section_id) {
-    query = query.eq('section_id', section_id);
-  } else if (card_id) {
-    query = query.eq('card_id', card_id);
-  } else {
-    return res.status(400).json({ error: 'section_id or card_id is required' });
+  if (!section_id) {
+    return res.status(400).json({ error: 'section_id is required' });
   }
+  
+  const query = supabase.from('cards').select('*').eq('section_id', section_id);
   
   const { data, error } = await query.order('created_at', { ascending: true });
   
@@ -55,15 +51,15 @@ async function handleGet(req, res) {
 // POST /api/cards - Unified card creation
 async function handlePost(req, res) {
   try {
-    const { section_id, card_id, title, description, icon, type, url, created_at } = req.body;
+    const { section_id, title, description, icon, type, url, created_at } = req.body;
 
     // Basic validation
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
     
-    if (!section_id && !card_id) {
-      return res.status(400).json({ error: 'Either section_id or card_id is required' });
+    if (!section_id) {
+      return res.status(400).json({ error: 'section_id is required' });
     }
     
     // URL validation for URL type cards
@@ -73,8 +69,7 @@ async function handlePost(req, res) {
 
     // Prepare data for insertion with unified fields
     const cardDataToInsert = {
-      section_id: section_id || null,
-      card_id: card_id || null,
+      section_id: section_id,
       title: title,
       description: description,
       icon: icon || 'logo.png',
