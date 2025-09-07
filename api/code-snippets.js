@@ -90,8 +90,14 @@ async function handleGet(req, res) {
     return res.status(500).json({ error: 'Failed to fetch code snippets' });
   }
 
+  // For section-level requests, return array directly (frontend expects array)
+  if (section_id && !card_id) {
+    return res.status(200).json(snippetsData || []);
+  }
+  
+  // For card-level requests, return object with card info
   return res.status(200).json({
-    card: cardData, // Will be null for section-level snippets
+    card: cardData,
     snippets: snippetsData || []
   });
 }
