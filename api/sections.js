@@ -28,12 +28,22 @@ module.exports = async function handler(req, res) {
   }
 }
 
-// GET /api/sections
+// GET /api/sections?parent_card_id=xxx (or no param for root sections)
 async function handleGet(req, res) {
-  const { data, error } = await supabase
+  const { parent_card_id } = req.query;
+  
+  let query = supabase
     .from('sections')
-    .select('*')
-    .order('section_order', { ascending: true });
+    .select('*');
+    
+  // Filter by parent_card_id or get root sections (parent_card_id IS NULL)
+  if (parent_card_id) {
+    query = query.eq('parent_card_id', parent_card_id);
+  } else {
+    query = query.is('parent_card_id', null);
+  }
+  
+  const { data, error } = await query.order('section_order', { ascending: true });
   
   if (error) {
     console.error('Sections fetch error:', error);
@@ -45,7 +55,7 @@ async function handleGet(req, res) {
 
 // POST /api/sections  
 async function handlePost(req, res) {
-  const { id, title, section_order } = req.body;
+  const { id, title, section_order, parent_card_id } = req.body;
   
   if (!id || !title) {
     return res.status(400).json({ error: 'id and title are required' });
@@ -53,7 +63,12 @@ async function handlePost(req, res) {
   
   const { data, error } = await supabase
     .from('sections')
-    .insert([{ id, title, section_order: section_order || 1 }])
+    .insert([{ 
+      id, 
+      title, 
+      section_order: section_order || 1,
+      parent_card_id: parent_card_id || null
+    }])
     .select()
     .single();
   
@@ -67,7 +82,7 @@ async function handlePost(req, res) {
 
 // PUT /api/sections
 async function handlePut(req, res) {
-  const { id, title, section_order } = req.body;
+  const { id, title, section_order, parent_card_id } = req.body;
   
   if (!id || !title) {
     return res.status(400).json({ error: 'id and title are required' });
@@ -75,7 +90,11 @@ async function handlePut(req, res) {
   
   const { data, error } = await supabase
     .from('sections')
-    .update({ title, section_order })
+    .update({ 
+      title, 
+      section_order,
+      parent_card_id: parent_card_id || null
+    })
     .eq('id', id)
     .select()
     .single();

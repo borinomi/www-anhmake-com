@@ -875,7 +875,7 @@
             const container = document.getElementById('sectionsContainer');
             
             try {
-                // 1. Load all sections from sections table
+                // 1. Load root-level sections only (parent_card_id = NULL)
                 const sectionsResponse = await fetch('/api/sections');
                 if (!sectionsResponse.ok) {
                     throw new Error('Failed to load sections');

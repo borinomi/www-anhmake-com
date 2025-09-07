@@ -547,17 +547,48 @@
         // Load sections and cards for this dashboard
         async function loadSectionsAndCards() {
             try {
-                // Get sections and cards data from page's data_json or separate API
-                const sectionsData = pageData.data_json?.sections || [];
+                // Load sections for this dashboard from sections API
+                const sectionsResponse = await fetch(`/api/sections?parent_card_id=${dashboardId}`);
+                if (!sectionsResponse.ok) {
+                    throw new Error('Failed to load sections');
+                }
+                const sectionsData = await sectionsResponse.json();
                 
                 if (sectionsData.length === 0) {
                     document.getElementById('sectionsContainer').innerHTML = 
-                        '<div style="text-align: center; color: #64748b; margin-top: 2rem;">아직 섹션이 없습니다.</div>';
+                        `<div style="text-align: center; color: #64748b; margin-top: 2rem;">
+                            <p>아직 섹션이 없습니다.</p>
+                            <button class="btn-section-action" onclick="showAddSectionModal()" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem; margin-top: 1rem;">+ 섹션 추가</button>
+                        </div>`;
                     return;
                 }
 
+                // Load cards for each section in parallel
+                const sectionsWithCards = await Promise.all(
+                    sectionsData.map(async (section) => {
+                        const [urlsResponse, codeResponse] = await Promise.all([
+                            fetch(`/api/urls?card_id=${dashboardId}`),
+                            fetch(`/api/code-snippets?card_id=${dashboardId}`)
+                        ]);
+                        
+                        const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
+                        const codeResponse_data = codeResponse.ok ? await codeResponse.json() : {};
+                        const codeData = codeResponse_data.snippets || [];
+                        
+                        const allCards = [
+                            ...urlsData.map(url => ({ ...url, type: 'url' })),
+                            ...codeData.map(code => ({ ...code, type: 'code' }))
+                        ];
+                        
+                        return {
+                            ...section,
+                            cards: allCards
+                        };
+                    })
+                );
+                
                 // Render sections
-                const sectionsHtml = sectionsData.map(section => `
+                const sectionsHtml = sectionsWithCards.map(section => `
                     <div class="section">
                         <div class="section-header">
                             <h2 class="section-title">${escapeHtml(section.title)}</h2>
@@ -572,7 +603,14 @@
                     </div>
                 `).join('');
 
-                document.getElementById('sectionsContainer').innerHTML = sectionsHtml;
+                // Add section management button
+                const addSectionButton = `
+                    <div style="margin-bottom: 2rem;">
+                        <button class="btn-section-action" onclick="showAddSectionModal()" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem;">+ 섹션 추가</button>
+                    </div>
+                `;
+
+                document.getElementById('sectionsContainer').innerHTML = addSectionButton + sectionsHtml;
                 
             } catch (error) {
                 console.error('Failed to load sections:', error);
@@ -631,6 +669,48 @@
         let currentSectionId = null;
         let currentCardId = null;
         let currentCardSectionId = null;
+        
+        // Section management functions
+        function showAddSectionModal() {
+            currentSectionId = null;
+            document.getElementById('sectionModalTitle').textContent = '섹션 추가';
+            document.getElementById('sectionTitle').value = '';
+            document.getElementById('deleteSectionBtn').style.display = 'none';
+            document.getElementById('sectionModal').style.display = 'block';
+        }
+        
+        function showEditSectionModal(sectionId, title) {
+            currentSectionId = sectionId;
+            document.getElementById('sectionModalTitle').textContent = '섹션 수정';
+            document.getElementById('sectionTitle').value = title;
+            document.getElementById('deleteSectionBtn').style.display = 'block';
+            document.getElementById('sectionModal').style.display = 'block';
+        }
+        
+        async function deleteCurrentSection() {
+            if (!currentSectionId) return;
+            
+            if (!confirm('이 섹션을 삭제하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch('/api/sections', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentSectionId })
+                });
+                
+                if (response.ok) {
+                    closeSectionModal();
+                    loadSectionsAndCards(); // Reload sections
+                } else {
+                    alert('섹션 삭제에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting section:', error);
+                alert('섹션 삭제 중 오류가 발생했습니다.');
+            }
+        }
 
         // Card management functions
         function addCard(sectionId) {
@@ -663,6 +743,79 @@
             }
             
             document.getElementById('sectionModal').style.display = 'block';
+        }
+
+        async function editCard(cardId) {
+            // Find card in current sections
+            let foundCard = null;
+            for (const section of pageData.data_json?.sections || []) {
+                foundCard = section.cards?.find(c => c.id == cardId);
+                if (foundCard) break;
+            }
+            
+            if (!foundCard) {
+                alert('카드를 찾을 수 없습니다.');
+                return;
+            }
+            
+            currentCardId = cardId;
+            currentCardSectionId = 'main';
+            
+            document.getElementById('cardModalTitle').textContent = '카드 수정';
+            document.getElementById('deleteCardBtn').style.display = 'block';
+            
+            // Populate form with card data
+            document.getElementById('cardType').value = foundCard.type || 'url';
+            document.getElementById('cardTitle').value = foundCard.title || '';
+            document.getElementById('cardDescription').value = foundCard.description || '';
+            document.getElementById('cardIcon').value = foundCard.icon || 'logo.png';
+            
+            if (foundCard.type === 'url') {
+                document.getElementById('cardUrl').value = foundCard.url || '';
+            }
+            
+            updateCardForm();
+            loadAvailableIcons();
+            
+            document.getElementById('cardModal').style.display = 'block';
+        }
+
+        async function deleteCurrentCard() {
+            if (!currentCardId) return;
+            
+            if (!confirm('이 카드를 삭제하시겠습니까?')) return;
+            
+            try {
+                // Find card type to determine which API to use
+                let foundCard = null;
+                for (const section of pageData.data_json?.sections || []) {
+                    foundCard = section.cards?.find(c => c.id == currentCardId);
+                    if (foundCard) break;
+                }
+                
+                if (!foundCard) {
+                    alert('카드를 찾을 수 없습니다.');
+                    return;
+                }
+                
+                let response;
+                if (foundCard.type === 'url') {
+                    response = await fetch(`/api/urls/${currentCardId}`, { method: 'DELETE' });
+                } else if (foundCard.type === 'code') {
+                    response = await fetch(`/api/code-snippets/${currentCardId}`, { method: 'DELETE' });
+                }
+                
+                if (response && response.ok) {
+                    closeCardModal();
+                    loadDashboard(); // Reload dashboard
+                } else {
+                    alert('카드 삭제에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                alert('카드 삭제 중 오류가 발생했습니다.');
+            }
         }
 
         function updateCardForm() {
@@ -716,14 +869,45 @@
                 return;
             }
             
-            // For now, just update the section title in current data
-            const section = sectionsData.find(s => s.id === currentSectionId);
-            if (section) {
-                section.title = title;
-                loadSectionsAndCards(); // Refresh display
+            try {
+                let response;
+                if (currentSectionId) {
+                    // Update existing section
+                    response = await fetch('/api/sections', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: currentSectionId,
+                            title: title,
+                            parent_card_id: dashboardId
+                        })
+                    });
+                } else {
+                    // Create new section
+                    const sectionId = 'dashboard_' + dashboardId + '_section_' + Date.now();
+                    response = await fetch('/api/sections', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: sectionId,
+                            title: title,
+                            parent_card_id: dashboardId,
+                            section_order: 1
+                        })
+                    });
+                }
+                
+                if (response.ok) {
+                    closeSectionModal();
+                    loadSectionsAndCards(); // Reload sections
+                } else {
+                    alert('섹션 저장에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error saving section:', error);
+                alert('섹션 저장 중 오류가 발생했습니다.');
             }
-            
-            closeSectionModal();
         });
 
         document.getElementById('cardForm').addEventListener('submit', async function(e) {
@@ -767,7 +951,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             ...cardData,
-                            content: '// 새 코드 스니펫\nconsole.log("Hello, World!");'
+                            content: description || '// 새 코드 스니펫'
                         })
                     });
                 }
