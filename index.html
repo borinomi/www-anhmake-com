@@ -960,57 +960,28 @@
         </div>
     </div>
 
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <!-- Main JavaScript -->
     <script>
-        // Initialize Supabase client with environment variables
-        const { createClient } = supabase;
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
-        
         let currentUser = null;
         
         // Auth functions
         function handleLogin() {
-            document.getElementById('loginModal').style.display = 'block';
-        }
-        
-        function closeLoginModal() {
-            document.getElementById('loginModal').style.display = 'none';
-        }
-        
-        async function handleGoogleLogin() {
-            try {
-                const { error } = await supabaseClient.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin
-                    }
-                });
-                
-                if (error) {
-                    console.error('Login error:', error.message);
-                    alert('로그인 중 오류가 발생했습니다: ' + error.message);
-                } else {
-                    closeLoginModal();
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                alert('로그인 중 오류가 발생했습니다.');
-            }
+            window.location.href = '/api/auth/login';
         }
         
         async function handleLogout() {
             try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) {
-                    console.error('Logout error:', error);
-                } else {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
                     currentUser = null;
                     updateAuthUI();
+                    window.location.reload();
+                } else {
+                    console.error('Logout failed');
                 }
             } catch (error) {
                 console.error('Logout error:', error);
@@ -1024,10 +995,10 @@
             if (currentUser) {
                 authSection.innerHTML = `
                     <div class="user-info">
-                        ${currentUser.user_metadata?.avatar_url ? 
-                            `<img src="${currentUser.user_metadata.avatar_url}" alt="Avatar" class="user-avatar">` : 
+                        ${currentUser.avatar_url ? 
+                            `<img src="${currentUser.avatar_url}" alt="Avatar" class="user-avatar">` : 
                             ''}
-                        <span>${currentUser.user_metadata?.name || currentUser.email}</span>
+                        <span>${currentUser.name || currentUser.email}</span>
                         <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
                     </div>
                 `;
@@ -1046,24 +1017,23 @@
         
         // Check auth state on page load
         async function checkAuthState() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session?.user) {
-                currentUser = session.user;
-            }
-            updateAuthUI();
-        }
-        
-        // Listen for auth changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                currentUser = session.user;
+            try {
+                const response = await fetch('/api/auth/user', {
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                } else {
+                    currentUser = null;
+                }
                 updateAuthUI();
-                closeLoginModal();
-            } else if (event === 'SIGNED_OUT') {
+            } catch (error) {
+                console.error('Auth check error:', error);
                 currentUser = null;
                 updateAuthUI();
             }
-        });
+        }
         
         // Check if user is authorized for admin actions
         function isAuthorized() {

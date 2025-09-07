@@ -393,16 +393,7 @@
         </div>
     </div>
 
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // Initialize Supabase client with environment variables
-        const { createClient } = supabase;
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
-        
         let currentUser = null;
         let currentEditId = null;
         let codeSnippets = [];
@@ -416,22 +407,21 @@
         
         // Check auth state
         async function checkAuthState() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session?.user) {
-                currentUser = session.user;
+            try {
+                const response = await fetch('/api/auth/user', {
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                } else {
+                    currentUser = null;
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                currentUser = null;
             }
         }
-        
-        // Listen for auth changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                currentUser = session.user;
-                renderCodeSnippets(); // Reload to show admin buttons
-            } else if (event === 'SIGNED_OUT') {
-                currentUser = null;
-                renderCodeSnippets(); // Reload to hide admin buttons
-            }
-        });
 
         // Load code snippets on page load
         async function loadCodeSnippets() {
