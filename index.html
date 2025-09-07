@@ -862,8 +862,7 @@
         </div>
     </div>
 
-    <!-- Load Data -->
-    <script src="./data/sections.js"></script>
+    <!-- Data now loaded from database via API -->
     
     <!-- Main JavaScript -->
     <script>
@@ -871,39 +870,47 @@
         let currentCardId = null;
         let currentCardSectionId = null;
         
-        // Load and render sections
+        // Load and render sections from database
         async function loadSections() {
             const container = document.getElementById('sectionsContainer');
             
             try {
-                // Load cards from Supabase
-                const [cardsResponse, urlsResponse] = await Promise.all([
-                    fetch('/api/cards?section_id=tools'),
-                    fetch('/api/urls?section_id=tools')
-                ]);
+                // 1. Load all sections from sections table
+                const sectionsResponse = await fetch('/api/sections');
+                if (!sectionsResponse.ok) {
+                    throw new Error('Failed to load sections');
+                }
+                const sectionsData = await sectionsResponse.json();
                 
-                const cardsData = cardsResponse.ok ? await cardsResponse.json() : [];
-                const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
+                // 2. Load all card data for each section in parallel
+                const sectionsWithCards = await Promise.all(
+                    sectionsData.map(async (section) => {
+                        const [cardsResponse, urlsResponse, codeResponse] = await Promise.all([
+                            fetch(`/api/cards?section_id=${section.id}`),
+                            fetch(`/api/urls?section_id=${section.id}`),
+                            fetch(`/api/code-snippets?section_id=${section.id}`)
+                        ]);
+                        
+                        const cardsData = cardsResponse.ok ? await cardsResponse.json() : [];
+                        const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
+                        const codeData = codeResponse.ok ? await codeResponse.json() : [];
+                        
+                        // 3. Set type based on table name and combine all cards
+                        const allCards = [
+                            ...cardsData.map(card => ({ ...card, type: 'dashboard' })),
+                            ...urlsData.map(url => ({ ...url, type: 'url' })),
+                            ...codeData.map(code => ({ ...code, type: 'code' }))
+                        ];
+                        
+                        return {
+                            ...section,
+                            cards: allCards
+                        };
+                    })
+                );
                 
-                // Combine with hardcoded sections data
-                const sections = window.sectionsData.sections.map(section => ({
-                    ...section,
-                    cards: [
-                        ...section.cards, // Keep hardcoded cards (like Excel)
-                        // Add database cards
-                        ...cardsData.map(card => ({
-                            ...card,
-                            type: 'dashboard' // Cards from /api/cards are dashboard type
-                        })),
-                        // Add database URLs
-                        ...urlsData.map(url => ({
-                            ...url,
-                            type: 'url'
-                        }))
-                    ]
-                }));
-                
-                container.innerHTML = sections.map(section => `
+                // 4. Render sections
+                container.innerHTML = sectionsWithCards.map(section => `
                     <div class="section" data-section-id="${section.id}">
                         <div class="section-header">
                             <h2 class="section-title">${section.title}</h2>
@@ -920,22 +927,7 @@
                 
             } catch (error) {
                 console.error('Error loading sections:', error);
-                // Fallback to static data
-                const sections = window.sectionsData.sections;
-                container.innerHTML = sections.map(section => `
-                    <div class="section" data-section-id="${section.id}">
-                        <div class="section-header">
-                            <h2 class="section-title">${section.title}</h2>
-                            <div class="section-actions">
-                                <button class="btn-section-action add-card" onclick="showAddCardModal('${section.id}')" title="카드 추가">+</button>
-                                <button class="btn-section-action" onclick="showEditSectionModal('${section.id}', '${section.title}')" title="섹션 수정">⋯</button>
-                            </div>
-                        </div>
-                        <div class="cards-grid">
-                            ${section.cards.map(card => renderCard(card, section.id)).join('')}
-                        </div>
-                    </div>
-                `).join('');
+                container.innerHTML = '<div style="text-align: center; color: #64748b; margin-top: 2rem;">섹션을 불러올 수 없습니다.</div>';
             }
         }
         
@@ -1058,12 +1050,10 @@
                     card.type = 'code';
                 }
                 
-                // Fallback to static data
+                // No fallback data - card not found
                 if (!card) {
-                    const section = window.sectionsData.sections.find(s => s.id === sectionId);
-                    if (section) {
-                        card = section.cards.find(c => c.id == cardId);
-                    }
+                    alert('카드를 찾을 수 없습니다.');
+                    return;
                 }
                 
                 if (card) {
@@ -1224,16 +1214,8 @@
             }
         }
         
-        function updateCard(sectionId, cardId, cardData) {
-            const section = window.sectionsData.sections.find(s => s.id === sectionId);
-            if (section) {
-                const cardIndex = section.cards.findIndex(c => c.id === cardId);
-                if (cardIndex !== -1) {
-                    section.cards[cardIndex] = { ...section.cards[cardIndex], ...cardData };
-                                        loadSections();
-                }
-            }
-        }
+        // Legacy updateCard function removed - all updates now go through APIs
+        // Cards are updated directly via API endpoints and then UI is refreshed
         
         async function deleteCard(sectionId, cardId) {
             try {
