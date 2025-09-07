@@ -402,21 +402,26 @@
         // Load code snippets on page load
         async function loadCodeSnippets() {
             try {
-                let response;
-                if (cardId) {
-                    // Load codes under specific card
-                    response = await fetch(`/api/code-snippets?card_id=${cardId}`);
-                    
-                    // Also load card info for title
-                    const cardResponse = await fetch(`/api/cards/${cardId}`);
-                    if (cardResponse.ok) {
-                        const cardData = await cardResponse.json();
-                        document.getElementById('pageTitle').textContent = cardData.title + ' - Code Snippets';
-                        document.getElementById('pageDescription').textContent = cardData.description;
-                    }
+                if (!cardId) {
+                    console.error('Card ID is required');
+                    document.getElementById('pageTitle').textContent = 'Error: Card ID Missing';
+                    document.getElementById('pageDescription').textContent = 'This page requires a valid card ID parameter.';
+                    showEmptyState();
+                    return;
+                }
+
+                // Load codes under specific card
+                const response = await fetch(`/api/code-snippets?card_id=${cardId}`);
+                
+                // Also load card info for title
+                const cardResponse = await fetch(`/api/cards/${cardId}`);
+                if (cardResponse.ok) {
+                    const cardData = await cardResponse.json();
+                    document.getElementById('pageTitle').textContent = cardData.title + ' - Code Snippets';
+                    document.getElementById('pageDescription').textContent = cardData.description;
                 } else {
-                    // Load all codes
-                    response = await fetch('/api/code-snippets');
+                    document.getElementById('pageTitle').textContent = 'Code Snippets';
+                    document.getElementById('pageDescription').textContent = 'Code snippets collection';
                 }
                 
                 if (response.ok) {
@@ -547,15 +552,16 @@
                 return;
             }
             
-            const data = {
-                title,
-                content,
-                icon: 'code.png'
-            };
-            
-            if (cardId) {
-                data.card_id = cardId;
+            if (!cardId) {
+                alert('카드 ID가 필요합니다.');
+                return;
             }
+
+            const data = {
+                card_id: cardId,
+                title,
+                content
+            };
             
             try {
                 let response;
