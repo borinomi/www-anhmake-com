@@ -489,10 +489,44 @@
         </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
+        // Initialize Supabase client with environment variables
+        const { createClient } = supabase;
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+        
+        let currentUser = null;
         let dashboardId = null;
         let pageData = null;
         let sectionsData = [];
+        
+        // Check if user is authorized for admin actions
+        function isAuthorized() {
+            return currentUser !== null;
+        }
+        
+        // Check auth state
+        async function checkAuthState() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session?.user) {
+                currentUser = session.user;
+            }
+        }
+        
+        // Listen for auth changes
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                currentUser = session.user;
+                loadSectionsAndCards(); // Reload to show admin buttons
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                loadSectionsAndCards(); // Reload to hide admin buttons
+            }
+        });
 
         // Get URL parameters
         function getUrlParameter(name) {
@@ -558,7 +592,9 @@
                     document.getElementById('sectionsContainer').innerHTML = 
                         `<div style="text-align: center; color: #64748b; margin-top: 2rem;">
                             <p>아직 섹션이 없습니다.</p>
-                            <button class="btn-section-action" onclick="showAddSectionModal()" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem; margin-top: 1rem;">+ 섹션 추가</button>
+                            ${isAuthorized() ? 
+                                `<button class="btn-section-action" onclick="showAddSectionModal()" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem; margin-top: 1rem;">+ 섹션 추가</button>` 
+                                : ''}
                         </div>`;
                     return;
                 }
@@ -581,10 +617,12 @@
                     <div class="section">
                         <div class="section-header">
                             <h2 class="section-title">${escapeHtml(section.title)}</h2>
+                            ${isAuthorized() ? `
                             <div class="section-actions">
                                 <button class="btn-section-action" title="카드 추가" onclick="addCard('${section.id}')">+</button>
                                 <button class="btn-section-action" title="섹션 설정" onclick="editSection('${section.id}')">⋯</button>
                             </div>
+                            ` : ''}
                         </div>
                         <div class="cards-grid">
                             ${renderCards(section.cards || [])}
@@ -593,11 +631,11 @@
                 `).join('');
 
                 // Add section management button
-                const addSectionButton = `
+                const addSectionButton = isAuthorized() ? `
                     <div style="margin-bottom: 2rem;">
                         <button class="btn-section-action" onclick="showAddSectionModal()" style="width: auto; padding: 0.8rem 1.5rem; border-radius: 2rem;">+ 섹션 추가</button>
                     </div>
-                `;
+                ` : '';
 
                 document.getElementById('sectionsContainer').innerHTML = addSectionButton + sectionsHtml;
                 
@@ -614,7 +652,7 @@
 
             return cards.map(card => `
                 <div class="tool-card" onclick="openCard('${card.type}', '${card.id}', '${escapeHtml(card.title)}', '${escapeHtml(card.description)}', '${card.icon || ''}', '${card.url || ''}')">
-                    <div class="card-menu" title="카드 메뉴" onclick="event.stopPropagation(); editCard('${card.id}')">⋯</div>
+                    ${isAuthorized() ? `<div class="card-menu" title="카드 메뉴" onclick="event.stopPropagation(); editCard('${card.id}')">⋯</div>` : ''}
                     <div class="tool-content">
                         <div class="tool-icon">
                             <img src="${getIconPath(card.icon)}" alt="${escapeHtml(card.title)}" onerror="this.src='../logo.png'">
@@ -965,6 +1003,7 @@
 
         // Initialize dashboard on page load
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuthState(); // Check authentication first
             loadDashboard();
             
             // Add event listener for card type change

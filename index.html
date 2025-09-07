@@ -965,10 +965,10 @@
     
     <!-- Main JavaScript -->
     <script>
-        // Initialize Supabase client
+        // Initialize Supabase client with environment variables
         const { createClient } = supabase;
-        const supabaseUrl = 'https://cxlxkqysyqlpkphlxzdk.supabase.co'
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4bHhrcXlzeXFscGtwaGx4emRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ0MTg1ODIsImV4cCI6MjA0OTk5NDU4Mn0.Wk_t6M8kY7aEIiQYWP8Q8zMYqyQRcxVW4zI8q4qRnfg'
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
         const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
         
         let currentUser = null;

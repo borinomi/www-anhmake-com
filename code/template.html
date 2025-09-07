@@ -353,7 +353,7 @@
             <p id="pageDescription">코드 스니펫을 관리하고 공유하세요</p>
         </div>
 
-        <button class="add-btn" onclick="showAddModal()">
+        <button class="add-btn" id="addCodeBtn" onclick="showAddModal()" style="display: none;">
             + 새 코드 추가
         </button>
 
@@ -393,11 +393,45 @@
         </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
+        // Initialize Supabase client with environment variables
+        const { createClient } = supabase;
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+        
+        let currentUser = null;
         let currentEditId = null;
         let codeSnippets = [];
         const urlParams = new URLSearchParams(window.location.search);
         const cardId = urlParams.get('id');
+        
+        // Check if user is authorized for admin actions
+        function isAuthorized() {
+            return currentUser !== null;
+        }
+        
+        // Check auth state
+        async function checkAuthState() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session?.user) {
+                currentUser = session.user;
+            }
+        }
+        
+        // Listen for auth changes
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                currentUser = session.user;
+                renderCodeSnippets(); // Reload to show admin buttons
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                renderCodeSnippets(); // Reload to hide admin buttons
+            }
+        });
 
         // Load code snippets on page load
         async function loadCodeSnippets() {
@@ -453,13 +487,18 @@
                         <span>${escapeHtml(code.title)}</span>
                         <div class="card-actions">
                             <button class="copy-btn" onclick="copyCode(${code.id}, event)">Copy</button>
-                            <button class="edit-btn" onclick="editCode(${code.id})" title="Edit">Edit</button>
-                            <button class="delete-btn" onclick="deleteCode(${code.id})" title="Delete">Delete</button>
+                            ${isAuthorized() ? `
+                                <button class="edit-btn" onclick="editCode(${code.id})" title="Edit">Edit</button>
+                                <button class="delete-btn" onclick="deleteCode(${code.id})" title="Delete">Delete</button>
+                            ` : ''}
                         </div>
                     </div>
                     <div class="resource-content">${escapeHtml(code.content)}</div>
                 </div>
             `).join('');
+            
+            // Show/hide add button based on authorization
+            document.getElementById('addCodeBtn').style.display = isAuthorized() ? 'block' : 'none';
         }
 
         function showEmptyState() {
@@ -609,7 +648,10 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', loadCodeSnippets);
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthState(); // Check authentication first
+            loadCodeSnippets();
+        });
     </script>
 </body>
 </html>
