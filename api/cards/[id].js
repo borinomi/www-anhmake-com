@@ -52,21 +52,20 @@ async function handleGet(req, res, id) {
 
 // PUT /api/cards/123
 async function handlePut(req, res, id) {
-  const { title, description, icon } = req.body;
+  const { title, description, icon, type, url } = req.body;
 
-  if (!title || !description) {
-    return res.status(400).json({ error: 'title and description are required' });
+  if (!title) {
+    return res.status(400).json({ error: 'title is required' });
   }
 
   const updateData = {
-    title: title,
-    description: description,
+    title,
+    description: description || '',
+    icon: icon || 'logo.png',
+    type: type || 'dashboard',
+    url: type === 'url' ? url : null,
     updated_at: new Date().toISOString()
   };
-
-  if (icon) {
-    updateData.icon = icon;
-  }
 
   const { data, error } = await supabase
     .from('cards')
@@ -76,7 +75,7 @@ async function handlePut(req, res, id) {
     .single();
 
   if (error) {
-    console.error('Update error:', error);
+    console.error('Card update error:', error);
     return res.status(500).json({ error: 'Failed to update card' });
   }
 
