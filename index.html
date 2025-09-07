@@ -882,29 +882,15 @@
                 }
                 const sectionsData = await sectionsResponse.json();
                 
-                // 2. Load all card data for each section in parallel
+                // 2. Load unified cards data for each section - single API call
                 const sectionsWithCards = await Promise.all(
                     sectionsData.map(async (section) => {
-                        const [cardsResponse, urlsResponse, codeResponse] = await Promise.all([
-                            fetch(`/api/cards?section_id=${section.id}`),
-                            fetch(`/api/urls?section_id=${section.id}`),
-                            fetch(`/api/code-snippets?section_id=${section.id}`)
-                        ]);
-                        
+                        const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`);
                         const cardsData = cardsResponse.ok ? await cardsResponse.json() : [];
-                        const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
-                        const codeData = codeResponse.ok ? await codeResponse.json() : [];
-                        
-                        // 3. Set type based on table name and combine all cards
-                        const allCards = [
-                            ...cardsData.map(card => ({ ...card, type: 'dashboard' })),
-                            ...urlsData.map(url => ({ ...url, type: 'url' })),
-                            ...codeData.map(code => ({ ...code, type: 'code' }))
-                        ];
                         
                         return {
                             ...section,
-                            cards: allCards
+                            cards: cardsData
                         };
                     })
                 );
@@ -939,10 +925,10 @@
                     clickAction = `onclick="window.open('${card.url}', '_blank')"`;
                     break;
                 case 'dashboard':
-                    clickAction = `onclick="openDashboard('${card.id}', '${card.title}', '${card.description}', '${card.icon}')"`;
+                    clickAction = `onclick="window.open('./dashboard/template.html?id=${card.id}', '_blank')"`;
                     break;
                 case 'code':
-                    clickAction = `onclick="openCodeBoard('${card.id}', '${card.title}', '${card.description}')"`;
+                    clickAction = `onclick="window.open('./code/template.html?id=${card.id}', '_blank')"`;
                     break;
             }
             
@@ -1004,9 +990,80 @@
         });
         
         // Section Management Functions
-        // Legacy section management functions - no longer used
-        // All functionality now handled through APIs
-        // These functions kept for backwards compatibility but are not called
+        async function addNewSection(title) {
+            try {
+                const sectionId = 'root_section_' + Date.now();
+                const response = await fetch('/api/sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: sectionId,
+                        title: title,
+                        parent_card_id: null, // Root-level section
+                        section_order: 1
+                    })
+                });
+                
+                if (response.ok) {
+                    loadSections(); // Reload sections
+                } else {
+                    alert('섹션 생성에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error creating section:', error);
+                alert('섹션 생성 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function updateSection(sectionId, title) {
+            try {
+                const response = await fetch('/api/sections', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: sectionId,
+                        title: title,
+                        parent_card_id: null // Root-level section
+                    })
+                });
+                
+                if (response.ok) {
+                    loadSections(); // Reload sections
+                } else {
+                    alert('섹션 수정에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error updating section:', error);
+                alert('섹션 수정 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function deleteCurrentSection() {
+            if (!currentSectionId) return;
+            
+            if (!confirm('이 섹션을 삭제하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch('/api/sections', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentSectionId })
+                });
+                
+                if (response.ok) {
+                    closeSectionModal();
+                    loadSections(); // Reload sections
+                } else {
+                    alert('섹션 삭제에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error deleting section:', error);
+                alert('섹션 삭제 중 오류가 발생했습니다.');
+            }
+        }
         
         // Card Modal Functions
         function showAddCardModal(sectionId) {
@@ -1029,55 +1086,35 @@
             loadAvailableIcons();
             
             try {
-                // Try to load card directly by ID from each API (parallel)
-                let card = null;
+                // Use unified cards API to get card data
+                const cardResponse = await fetch(`/api/cards/${cardId}`);
                 
-                // Try all APIs in parallel
-                const [urlResponse, cardResponse, codeResponse] = await Promise.all([
-                    fetch(`/api/urls/${cardId}`).catch(() => ({ ok: false })),
-                    fetch(`/api/cards/${cardId}`).catch(() => ({ ok: false })),
-                    fetch(`/api/code-snippets/${cardId}`).catch(() => ({ ok: false }))
-                ]);
-                
-                if (urlResponse.ok) {
-                    card = await urlResponse.json();
-                    card.type = 'url';
-                } else if (cardResponse.ok) {
-                    card = await cardResponse.json();
-                    card.type = 'dashboard';
-                } else if (codeResponse.ok) {
-                    card = await codeResponse.json();
-                    card.type = 'code';
-                }
-                
-                // No fallback data - card not found
-                if (!card) {
+                if (!cardResponse.ok) {
                     alert('카드를 찾을 수 없습니다.');
                     return;
                 }
                 
-                if (card) {
-                    document.getElementById('cardType').value = card.type || 'dashboard';
-                    document.getElementById('cardTitle').value = card.title || '';
-                    document.getElementById('cardDescription').value = card.description || '';
-                    
-                    // Set icon after loading available icons
-                    setTimeout(() => {
-                        document.getElementById('cardIcon').value = card.icon || 'logo.png';
-                    }, 100);
-                    
-                    // Load type-specific data
-                    if (card.type === 'url') {
-                        document.getElementById('cardUrl').value = card.url || '';
-                    }
-                    
-                    updateCardForm();
-                } else {
-                    console.error('Card not found:', cardId);
+                const card = await cardResponse.json();
+                
+                document.getElementById('cardType').value = card.type || 'dashboard';
+                document.getElementById('cardTitle').value = card.title || '';
+                document.getElementById('cardDescription').value = card.description || '';
+                
+                // Set icon after loading available icons
+                setTimeout(() => {
+                    document.getElementById('cardIcon').value = card.icon || 'logo.png';
+                }, 100);
+                
+                // Load type-specific data
+                if (card.type === 'url') {
+                    document.getElementById('cardUrl').value = card.url || '';
                 }
+                
+                updateCardForm();
                 
             } catch (error) {
                 console.error('Error loading card data:', error);
+                alert('카드 데이터를 불러오는 중 오류가 발생했습니다.');
             }
             
             document.getElementById('cardModal').style.display = 'block';
@@ -1155,62 +1192,33 @@
             closeCardModal();
         });
         
-        // Card Management Functions
+        // Card Management Functions - Unified cards API
         async function addNewCard(sectionId, cardData) {
             try {
-                let response;
-                
-                if (cardData.type === 'url') {
-                    // Create URL card via API
-                    response = await fetch('/api/urls', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            section_id: sectionId,
-                            title: cardData.title,
-                            url: cardData.url,
-                            description: cardData.description,
-                            icon: cardData.icon
-                        })
-                    });
-                } else if (cardData.type === 'dashboard') {
-                    // Create Dashboard card via API  
-                    response = await fetch('/api/cards', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            section_id: sectionId,
-                            title: cardData.title,
-                            description: cardData.description,
-                            icon: cardData.icon
-                        })
-                    });
-                } else if (cardData.type === 'code') {
-                    // Create Dashboard card first, then code snippets are created separately
-                    response = await fetch('/api/cards', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            section_id: sectionId,
-                            title: cardData.title,
-                            description: cardData.description,
-                            icon: cardData.icon
-                        })
-                    });
-                }
+                // Use unified cards API for all card types
+                const response = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        section_id: sectionId,
+                        title: cardData.title,
+                        description: cardData.description,
+                        icon: cardData.icon,
+                        type: cardData.type,
+                        url: cardData.url || null // Include URL for url type cards
+                    })
+                });
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const result = await response.json();
-                
-                // Refresh the page to show new data
-                location.reload();
+                loadSections(); // Reload sections to show new card
                 
             } catch (error) {
                 console.error('Error creating card:', error);
-                // Error handling without alert - just log to console
+                alert('카드 생성 중 오류가 발생했습니다.');
             }
         }
         
@@ -1219,40 +1227,12 @@
         
         async function deleteCard(sectionId, cardId) {
             try {
-                // Try to find card type by direct ID lookup (parallel)
-                const [urlResponse, cardResponse, codeResponse] = await Promise.all([
-                    fetch(`/api/urls/${cardId}`).catch(() => ({ ok: false })),
-                    fetch(`/api/cards/${cardId}`).catch(() => ({ ok: false })),
-                    fetch(`/api/code-snippets/${cardId}`).catch(() => ({ ok: false }))
-                ]);
+                // Use unified cards API for deletion
+                const deleteResponse = await fetch(`/api/cards/${cardId}`, {
+                    method: 'DELETE'
+                });
                 
-                let cardType = null;
-                if (urlResponse.ok) cardType = 'url';
-                else if (cardResponse.ok) cardType = 'dashboard';  
-                else if (codeResponse.ok) cardType = 'code';
-                
-                if (!cardType) {
-                    alert('카드를 찾을 수 없습니다.');
-                    return;
-                }
-                
-                // Delete from appropriate API endpoint
-                let deleteResponse;
-                if (cardType === 'url') {
-                    deleteResponse = await fetch(`/api/urls/${cardId}`, {
-                        method: 'DELETE'
-                    });
-                } else if (cardType === 'dashboard') {
-                    deleteResponse = await fetch(`/api/cards/${cardId}`, {
-                        method: 'DELETE'
-                    });
-                } else if (cardType === 'code') {
-                    deleteResponse = await fetch(`/api/code-snippets/${cardId}`, {
-                        method: 'DELETE'
-                    });
-                }
-                
-                if (deleteResponse && deleteResponse.ok) {
+                if (deleteResponse.ok) {
                     loadSections(); // Reload to reflect changes
                 } else {
                     alert('카드 삭제에 실패했습니다.');
@@ -1281,13 +1261,6 @@
         // Data Management Functions
         // All data is now handled through APIs - localStorage removed
         
-        function openDashboard(cardId, title, description, icon) {
-            window.open(`./dashboard/template.html?id=${cardId}`, '_blank');
-        }
-        
-        function openCodeBoard(cardId, title, description) {
-            window.open(`./code/template.html?id=${cardId}`, '_blank');
-        }
         
         // Load available icons
         async function loadAvailableIcons() {
