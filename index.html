@@ -1265,32 +1265,26 @@
         // Load available icons
         async function loadAvailableIcons() {
             try {
-                const iconSelect = document.getElementById('cardIcon');
-                // Clear existing options except the first one
-                while (iconSelect.children.length > 1) {
-                    iconSelect.removeChild(iconSelect.lastChild);
-                }
-                
-                // Available icons in the icon folder
-                const availableIcons = [
-                    'logo.png',
-                    'logo_Excel.png', 
-                    'logo_Youtube.png',
-                    'logo_code.png',
-                    'logo_link.png',
-                    'logo_n8n.png',
-                    'logo-gpm.png'
-                ];
-                
-                // Add each icon as an option
-                availableIcons.forEach(iconName => {
-                    if (iconName !== 'logo.png') { // Skip default icon as it's already added
-                        const option = document.createElement('option');
-                        option.value = iconName;
-                        option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
-                        iconSelect.appendChild(option);
+                const response = await fetch('/api/icons');
+                if (response.ok) {
+                    const icons = await response.json();
+                    const iconSelect = document.getElementById('cardIcon');
+                    
+                    // Clear existing options except the first one
+                    while (iconSelect.children.length > 1) {
+                        iconSelect.removeChild(iconSelect.lastChild);
                     }
-                });
+                    
+                    // Add each icon as an option
+                    icons.forEach(iconName => {
+                        if (iconName !== 'logo.png') { // Skip default icon as it's already added
+                            const option = document.createElement('option');
+                            option.value = iconName;
+                            option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
+                            iconSelect.appendChild(option);
+                        }
+                    });
+                }
                 
             } catch (error) {
                 console.error('Error loading icons:', error);

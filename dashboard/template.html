@@ -825,31 +825,23 @@
 
         async function loadAvailableIcons() {
             try {
-                const iconSelect = document.getElementById('cardIcon');
-                
-                // Available icons in the icon folder
-                const availableIcons = [
-                    'logo.png',
-                    'logo_Excel.png', 
-                    'logo_Youtube.png',
-                    'logo_code.png',
-                    'logo_link.png',
-                    'logo_n8n.png',
-                    'logo-gpm.png'
-                ];
-                
-                iconSelect.innerHTML = '<option value="logo.png">기본 아이콘 (logo.png)</option>';
-                availableIcons.forEach(iconName => {
-                    if (iconName !== 'logo.png') {
-                        const option = document.createElement('option');
-                        option.value = iconName;
-                        option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
-                        iconSelect.appendChild(option);
-                    }
-                });
-                
+                const response = await fetch('/api/icons');
+                if (response.ok) {
+                    const icons = await response.json();
+                    const iconSelect = document.getElementById('cardIcon');
+                    
+                    iconSelect.innerHTML = '<option value="logo.png">기본 아이콘 (logo.png)</option>';
+                    icons.forEach(iconName => {
+                        if (iconName !== 'logo.png') {
+                            const option = document.createElement('option');
+                            option.value = iconName;
+                            option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
+                            iconSelect.appendChild(option);
+                        }
+                    });
+                }
             } catch (error) {
-                console.error('Error loading icons:', error);
+                console.error('Failed to load icons:', error);
             }
         }
 
