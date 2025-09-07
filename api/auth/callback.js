@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   const { code } = req.query;
 
   if (!code) {
-    return res.redirect('/?error=no_code');
+    return res.redirect('https://www.anhmake.com/?error=no_code');
   }
 
   try {
@@ -17,11 +17,11 @@ module.exports = async function handler(req, res) {
 
     if (error) {
       console.error('Session exchange error:', error);
-      return res.redirect('/?error=auth_failed');
+      return res.redirect('https://www.anhmake.com/?error=auth_failed');
     }
 
     if (!session) {
-      return res.redirect('/?error=no_session');
+      return res.redirect('https://www.anhmake.com/?error=no_session');
     }
 
     // Set session cookies
@@ -34,9 +34,9 @@ module.exports = async function handler(req, res) {
     ]);
 
     // Redirect back to main page
-    return res.redirect('/');
+    return res.redirect('https://www.anhmake.com/');
   } catch (error) {
     console.error('Callback error:', error);
-    return res.redirect('/?error=callback_failed');
+    return res.redirect('https://www.anhmake.com/?error=callback_failed');
   }
 };

@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${req.headers.origin || 'http://localhost:3000'}/api/auth/callback`
+        redirectTo: 'https://www.anhmake.com/api/auth/callback'
       }
     });
 
