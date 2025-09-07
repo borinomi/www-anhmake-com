@@ -787,14 +787,10 @@
                     return;
                 }
                 
-                let response;
-                if (foundCard.type === 'url') {
-                    response = await fetch(`/api/urls/${currentCardId}`, { method: 'DELETE' });
-                } else if (foundCard.type === 'code') {
-                    response = await fetch(`/api/code-snippets/${currentCardId}`, { method: 'DELETE' });
-                }
+                // Use unified cards API for deletion
+                const response = await fetch(`/api/cards/${currentCardId}`, { method: 'DELETE' });
                 
-                if (response && response.ok) {
+                if (response.ok) {
                     closeCardModal();
                     loadSectionsAndCards(); // Reload dashboard
                 } else {
@@ -820,19 +816,31 @@
 
         async function loadAvailableIcons() {
             try {
-                const response = await fetch('/api/icons');
-                if (response.ok) {
-                    const icons = await response.json();
-                    const iconSelect = document.getElementById('cardIcon');
-                    
-                    iconSelect.innerHTML = '<option value="logo.png">기본 아이콘 (logo.png)</option>';
-                    icons.forEach(icon => {
-                        const filename = icon.split('/').pop();
-                        iconSelect.innerHTML += `<option value="${filename}">${filename}</option>`;
-                    });
-                }
+                const iconSelect = document.getElementById('cardIcon');
+                
+                // Available icons in the icon folder
+                const availableIcons = [
+                    'logo.png',
+                    'logo_Excel.png', 
+                    'logo_Youtube.png',
+                    'logo_code.png',
+                    'logo_link.png',
+                    'logo_n8n.png',
+                    'logo-gpm.png'
+                ];
+                
+                iconSelect.innerHTML = '<option value="logo.png">기본 아이콘 (logo.png)</option>';
+                availableIcons.forEach(iconName => {
+                    if (iconName !== 'logo.png') {
+                        const option = document.createElement('option');
+                        option.value = iconName;
+                        option.textContent = iconName.replace('logo_', '').replace('logo-', '').replace('.png', '');
+                        iconSelect.appendChild(option);
+                    }
+                });
+                
             } catch (error) {
-                console.error('Failed to load icons:', error);
+                console.error('Error loading icons:', error);
             }
         }
 
@@ -927,23 +935,19 @@
                     card_id: dashboardId  // Parent dashboard ID
                 };
                 
-                if (cardType === 'url') {
-                    cardData.url = url;
-                    response = await fetch('/api/urls', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cardData)
-                    });
-                } else if (cardType === 'code') {
-                    response = await fetch('/api/code-snippets', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            ...cardData,
-                            content: description || '// 새 코드 스니펫'
-                        })
-                    });
-                }
+                // Use unified cards API for all card types
+                const response = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        icon: icon || 'logo.png',
+                        type: cardType,
+                        url: cardType === 'url' ? url : null,
+                        section_id: currentCardSectionId
+                    })
+                });
                 
                 if (response && response.ok) {
                     closeCardModal();
