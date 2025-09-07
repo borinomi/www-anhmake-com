@@ -299,6 +299,80 @@
         </div>
     </div>
 
+    <!-- Section Modal -->
+    <div id="sectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="sectionModalTitle" class="modal-title">섹션 추가</h3>
+                <span class="close" onclick="closeSectionModal()">&times;</span>
+            </div>
+            <form id="sectionForm">
+                <div class="form-group">
+                    <label class="form-label" for="sectionTitle">섹션 제목</label>
+                    <input type="text" id="sectionTitle" class="form-input" placeholder="섹션 제목을 입력하세요" required>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="deleteSectionBtn" class="btn-secondary" onclick="deleteCurrentSection()" style="background: #dc2626; display: none;">삭제</button>
+                    <div>
+                        <button type="button" class="btn-secondary" onclick="closeSectionModal()">취소</button>
+                        <button type="submit" class="btn-primary">저장</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Card Modal -->
+    <div id="cardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cardModalTitle" class="modal-title">카드 추가</h3>
+                <span class="close" onclick="closeCardModal()">&times;</span>
+            </div>
+            <form id="cardForm">
+                <div class="form-group">
+                    <label class="form-label" for="cardType">카드 타입</label>
+                    <select id="cardType" class="form-select" required>
+                        <option value="url">URL - 외부 링크</option>
+                        <option value="code">Code - 코드 스니펫</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="cardTitle">제목</label>
+                    <input type="text" id="cardTitle" class="form-input" placeholder="카드 제목" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="cardDescription">설명</label>
+                    <textarea id="cardDescription" class="form-textarea" placeholder="카드 설명" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="cardIcon">아이콘 선택</label>
+                    <select id="cardIcon" class="form-select">
+                        <option value="logo.png">기본 아이콘 (logo.png)</option>
+                        <!-- Icons will be loaded here -->
+                    </select>
+                </div>
+                
+                <!-- URL specific fields -->
+                <div id="urlFields" class="form-group">
+                    <label class="form-label" for="cardUrl">URL</label>
+                    <input type="url" id="cardUrl" class="form-input" placeholder="https://example.com">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="deleteCardBtn" class="btn-secondary" onclick="deleteCurrentCard()" style="background: #dc2626; display: none;">삭제</button>
+                    <div>
+                        <button type="button" class="btn-secondary" onclick="closeCardModal()">취소</button>
+                        <button type="submit" class="btn-primary">저장</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let dashboardId = null;
         let pageData = null;
@@ -437,25 +511,163 @@
             }
         }
 
+        // Modal management
+        let currentSectionId = null;
+        let currentCardId = null;
+        let currentCardSectionId = null;
+
         // Card management functions
         function addCard(sectionId) {
-            const choice = confirm('어떤 타입을 추가하시겠습니까?\nOK: URL 링크\nCancel: 코드 스니펫');
-            if (choice) {
-                // Add URL
-                window.open(`../index.html#add-url-${sectionId}`, '_self');
-            } else {
-                // Add Code Snippet  
-                window.open(`../code/template.html?create=true&parent_id=${dashboardId}`, '_blank');
-            }
-        }
-
-        function editCard(cardId) {
-            alert('카드 수정 기능 준비중');
+            currentSectionId = sectionId;
+            currentCardId = null;
+            currentCardSectionId = sectionId;
+            
+            document.getElementById('cardModalTitle').textContent = '카드 추가';
+            document.getElementById('deleteCardBtn').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('cardForm').reset();
+            document.getElementById('cardType').value = 'url';
+            updateCardForm();
+            
+            loadAvailableIcons();
+            
+            document.getElementById('cardModal').style.display = 'block';
         }
 
         function editSection(sectionId) {
-            alert('섹션 설정 기능 준비중');
+            currentSectionId = sectionId;
+            document.getElementById('sectionModalTitle').textContent = '섹션 수정';
+            document.getElementById('deleteSectionBtn').style.display = 'block';
+            
+            // Find section and populate form
+            const section = sectionsData.find(s => s.id === sectionId);
+            if (section) {
+                document.getElementById('sectionTitle').value = section.title;
+            }
+            
+            document.getElementById('sectionModal').style.display = 'block';
         }
+
+        function updateCardForm() {
+            const cardType = document.getElementById('cardType').value;
+            const urlFields = document.getElementById('urlFields');
+            
+            if (cardType === 'url') {
+                urlFields.style.display = 'block';
+            } else {
+                urlFields.style.display = 'none';
+            }
+        }
+
+        async function loadAvailableIcons() {
+            try {
+                const response = await fetch('/api/icons');
+                if (response.ok) {
+                    const icons = await response.json();
+                    const iconSelect = document.getElementById('cardIcon');
+                    
+                    iconSelect.innerHTML = '<option value="logo.png">기본 아이콘 (logo.png)</option>';
+                    icons.forEach(icon => {
+                        const filename = icon.split('/').pop();
+                        iconSelect.innerHTML += `<option value="${filename}">${filename}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load icons:', error);
+            }
+        }
+
+        // Modal close functions
+        function closeSectionModal() {
+            document.getElementById('sectionModal').style.display = 'none';
+            currentSectionId = null;
+        }
+
+        function closeCardModal() {
+            document.getElementById('cardModal').style.display = 'none';
+            currentCardId = null;
+            currentCardSectionId = null;
+        }
+
+        // Form submission handlers
+        document.getElementById('sectionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('sectionTitle').value.trim();
+            
+            if (!title) {
+                alert('섹션 제목을 입력해주세요.');
+                return;
+            }
+            
+            // For now, just update the section title in current data
+            const section = sectionsData.find(s => s.id === currentSectionId);
+            if (section) {
+                section.title = title;
+                loadSectionsAndCards(); // Refresh display
+            }
+            
+            closeSectionModal();
+        });
+
+        document.getElementById('cardForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cardType = document.getElementById('cardType').value;
+            const title = document.getElementById('cardTitle').value.trim();
+            const description = document.getElementById('cardDescription').value.trim();
+            const icon = document.getElementById('cardIcon').value;
+            const url = document.getElementById('cardUrl').value.trim();
+            
+            if (!title || !description) {
+                alert('제목과 설명을 모두 입력해주세요.');
+                return;
+            }
+            
+            if (cardType === 'url' && !url) {
+                alert('URL을 입력해주세요.');
+                return;
+            }
+            
+            try {
+                let response;
+                const cardData = {
+                    title,
+                    description,
+                    icon: icon || 'logo.png',
+                    card_id: dashboardId  // Parent dashboard ID
+                };
+                
+                if (cardType === 'url') {
+                    cardData.url = url;
+                    response = await fetch('/api/urls', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cardData)
+                    });
+                } else if (cardType === 'code') {
+                    response = await fetch('/api/code-snippets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...cardData,
+                            content: '// 새 코드 스니펫\nconsole.log("Hello, World!");'
+                        })
+                    });
+                }
+                
+                if (response && response.ok) {
+                    closeCardModal();
+                    loadDashboard(); // Reload dashboard
+                } else {
+                    alert('카드 저장에 실패했습니다.');
+                }
+                
+            } catch (error) {
+                console.error('Error saving card:', error);
+                alert('카드 저장 중 오류가 발생했습니다.');
+            }
+        });
 
         // Escape HTML to prevent XSS
         function escapeHtml(text) {
@@ -466,7 +678,15 @@
         }
 
         // Initialize dashboard on page load
-        document.addEventListener('DOMContentLoaded', loadDashboard);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            
+            // Add event listener for card type change
+            document.getElementById('cardType').addEventListener('change', updateCardForm);
+            
+            // Initialize form
+            updateCardForm();
+        });
     </script>
 </body>
 </html>

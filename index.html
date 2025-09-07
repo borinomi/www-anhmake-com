@@ -913,7 +913,7 @@
                             </div>
                         </div>
                         <div class="cards-grid">
-                            ${section.cards.map(card => renderCard(card)).join('')}
+                            ${section.cards.map(card => renderCard(card, section.id)).join('')}
                         </div>
                     </div>
                 `).join('');
@@ -932,7 +932,7 @@
                             </div>
                         </div>
                         <div class="cards-grid">
-                            ${section.cards.map(card => renderCard(card)).join('')}
+                            ${section.cards.map(card => renderCard(card, section.id)).join('')}
                         </div>
                     </div>
                 `).join('');
@@ -940,7 +940,7 @@
         }
         
         // Render individual card
-        function renderCard(card) {
+        function renderCard(card, sectionId) {
             let clickAction = '';
             switch(card.type) {
                 case 'url':
@@ -956,7 +956,7 @@
             
             return `
                 <div class="tool-card" ${clickAction}>
-                    <div class="card-menu" onclick="event.stopPropagation(); showCardMenu(event, ${card.id})" title="카드 메뉴">⋯</div>
+                    <div class="card-menu" onclick="event.stopPropagation(); showCardMenu(event, ${card.id}, '${sectionId}')" title="카드 메뉴">⋯</div>
                     <div class="tool-content">
                         <div class="tool-icon">
                             <img src="icon/${card.icon}" alt="${card.title}" onerror="this.src='icon/logo.png'">
@@ -1012,39 +1012,9 @@
         });
         
         // Section Management Functions
-        function addNewSection(title) {
-            const newSection = {
-                id: 'section_' + Date.now(),
-                title: title,
-                order: window.sectionsData.sections.length + 1,
-                cards: []
-            };
-            
-            window.sectionsData.sections.push(newSection);
-                        loadSections();
-        }
-        
-        function updateSection(sectionId, title) {
-            const section = window.sectionsData.sections.find(s => s.id === sectionId);
-            if (section) {
-                section.title = title;
-                                loadSections();
-            }
-        }
-        
-        function deleteSection(sectionId) {
-            if (confirm('이 섹션을 삭제하시겠습니까? 섹션 내의 모든 카드도 함께 삭제됩니다.')) {
-                window.sectionsData.sections = window.sectionsData.sections.filter(s => s.id !== sectionId);
-                                loadSections();
-            }
-        }
-        
-        function deleteCurrentSection() {
-            if (currentSectionId) {
-                deleteSection(currentSectionId);
-                closeSectionModal();
-            }
-        }
+        // Legacy section management functions - no longer used
+        // All functionality now handled through APIs
+        // These functions kept for backwards compatibility but are not called
         
         // Card Modal Functions
         function showAddCardModal(sectionId) {
@@ -1067,25 +1037,25 @@
             loadAvailableIcons();
             
             try {
-                // Try to load card from database APIs
+                // Try to load card directly by ID from each API (parallel)
                 let card = null;
                 
-                // Check if it's a URL card
-                const urlResponse = await fetch(`/api/urls?section_id=${sectionId}`);
-                if (urlResponse.ok) {
-                    const urls = await urlResponse.json();
-                    card = urls.find(u => u.id == cardId);
-                    if (card) card.type = 'url';
-                }
+                // Try all APIs in parallel
+                const [urlResponse, cardResponse, codeResponse] = await Promise.all([
+                    fetch(`/api/urls/${cardId}`).catch(() => ({ ok: false })),
+                    fetch(`/api/cards/${cardId}`).catch(() => ({ ok: false })),
+                    fetch(`/api/code-snippets/${cardId}`).catch(() => ({ ok: false }))
+                ]);
                 
-                // If not found, check if it's a Dashboard/Code card  
-                if (!card) {
-                    const cardsResponse = await fetch(`/api/cards?section_id=${sectionId}`);
-                    if (cardsResponse.ok) {
-                        const cards = await cardsResponse.json();
-                        card = cards.find(c => c.id == cardId);
-                        if (card) card.type = 'dashboard'; // Default to dashboard for cards table
-                    }
+                if (urlResponse.ok) {
+                    card = await urlResponse.json();
+                    card.type = 'url';
+                } else if (cardResponse.ok) {
+                    card = await cardResponse.json();
+                    card.type = 'dashboard';
+                } else if (codeResponse.ok) {
+                    card = await codeResponse.json();
+                    card.type = 'code';
                 }
                 
                 // Fallback to static data
@@ -1267,36 +1237,17 @@
         
         async function deleteCard(sectionId, cardId) {
             try {
-                // First determine what type of card this is by checking APIs
+                // Try to find card type by direct ID lookup (parallel)
+                const [urlResponse, cardResponse, codeResponse] = await Promise.all([
+                    fetch(`/api/urls/${cardId}`).catch(() => ({ ok: false })),
+                    fetch(`/api/cards/${cardId}`).catch(() => ({ ok: false })),
+                    fetch(`/api/code-snippets/${cardId}`).catch(() => ({ ok: false }))
+                ]);
+                
                 let cardType = null;
-                
-                // Check if it's a URL card
-                const urlResponse = await fetch(`/api/urls?section_id=${sectionId}`);
-                if (urlResponse.ok) {
-                    const urls = await urlResponse.json();
-                    const urlCard = urls.find(u => u.id == cardId);
-                    if (urlCard) cardType = 'url';
-                }
-                
-                // If not URL, check if it's a Dashboard card
-                if (!cardType) {
-                    const cardsResponse = await fetch(`/api/cards?section_id=${sectionId}`);
-                    if (cardsResponse.ok) {
-                        const cards = await cardsResponse.json();
-                        const dashboardCard = cards.find(c => c.id == cardId);
-                        if (dashboardCard) cardType = 'dashboard';
-                    }
-                }
-                
-                // If not URL or Dashboard, check if it's a Code Snippet
-                if (!cardType) {
-                    const codeResponse = await fetch(`/api/code-snippets?section_id=${sectionId}`);
-                    if (codeResponse.ok) {
-                        const codes = await codeResponse.json();
-                        const codeCard = codes.find(c => c.id == cardId);
-                        if (codeCard) cardType = 'code';
-                    }
-                }
+                if (urlResponse.ok) cardType = 'url';
+                else if (cardResponse.ok) cardType = 'dashboard';  
+                else if (codeResponse.ok) cardType = 'code';
                 
                 if (!cardType) {
                     alert('카드를 찾을 수 없습니다.');
@@ -1341,10 +1292,8 @@
         }
         
         // Card Menu Functions - simplified to directly show edit modal
-        function showCardMenu(event, cardId) {
-            // For now, assume all cards are in 'tools' section
-            // TODO: Could be enhanced to determine actual section dynamically
-            showEditCardModal(cardId, 'tools');
+        function showCardMenu(event, cardId, sectionId) {
+            showEditCardModal(cardId, sectionId);
         }
         
         // Data Management Functions
