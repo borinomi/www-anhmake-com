@@ -171,7 +171,7 @@
         }
 
         .resource-content {
-            background: #f8fafc;
+            background: #e2e8f0;
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
             padding: 1.5rem;
@@ -452,9 +452,9 @@
                     <div class="resource-title">
                         <span>${escapeHtml(code.title)}</span>
                         <div class="card-actions">
-                            <button class="copy-btn" onclick="copyCode(${code.id}, event)">복사</button>
-                            <button class="edit-btn" onclick="editCode(${code.id})" title="수정">✏️</button>
-                            <button class="delete-btn" onclick="deleteCode(${code.id})" title="삭제">🗑️</button>
+                            <button class="copy-btn" onclick="copyCode(${code.id}, event)">Copy</button>
+                            <button class="edit-btn" onclick="editCode(${code.id})" title="Edit">Edit</button>
+                            <button class="delete-btn" onclick="deleteCode(${code.id})" title="Delete">Delete</button>
                         </div>
                     </div>
                     <div class="resource-content">${escapeHtml(code.content)}</div>
@@ -522,7 +522,7 @@
                 
                 const copyBtn = event.target;
                 const originalText = copyBtn.textContent;
-                copyBtn.textContent = '복사됨!';
+                copyBtn.textContent = 'Copied!';
                 copyBtn.classList.add('copied');
                 
                 setTimeout(() => {
@@ -531,7 +531,7 @@
                 }, 2000);
             } catch (error) {
                 console.error('Failed to copy:', error);
-                alert('복사에 실패했습니다.');
+                alert('Failed to copy to clipboard.');
             }
         }
 
