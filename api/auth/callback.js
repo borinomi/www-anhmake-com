@@ -27,6 +27,10 @@ module.exports = async function handler(req, res) {
     // Set session cookies
     const { access_token, refresh_token } = session;
     
+    console.log('Setting cookies for user:', session.user.email);
+    console.log('Access token length:', access_token?.length);
+    console.log('Refresh token length:', refresh_token?.length);
+    
     // Set httpOnly cookies for security
     res.setHeader('Set-Cookie', [
       `sb-access-token=${access_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600`,
