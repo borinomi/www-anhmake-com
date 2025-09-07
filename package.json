@@ -4,13 +4,17 @@
   "description": "ANHMAKE website with Supabase integration",
   "main": "index.html",
   "dependencies": {
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.39.0"
   },
   "scripts": {
     "dev": "npx serve .",
     "build": "echo 'No build process required'"
   },
-  "keywords": ["website", "supabase"],
+  "keywords": [
+    "website",
+    "supabase"
+  ],
   "author": "ANHMAKE",
   "license": "MIT"
 }

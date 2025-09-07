@@ -1,8 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const { createServerClient } = require('@supabase/ssr');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -10,26 +6,48 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Get tokens from cookies
-    const accessToken = req.cookies['sb-access-token'];
-    const refreshToken = req.cookies['sb-refresh-token'];
+    // Create Supabase client with proper cookie handling
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            const cookieHeader = req.headers.cookie;
+            if (!cookieHeader) return [];
+            
+            return cookieHeader.split(';').map(cookie => {
+              const [name, value] = cookie.trim().split('=');
+              return { name, value };
+            });
+          },
+          setAll(cookiesToSet) {
+            const cookieStrings = cookiesToSet.map(({ name, value, options }) => {
+              let cookieString = `${name}=${value}`;
+              
+              if (options?.httpOnly) cookieString += '; HttpOnly';
+              if (options?.secure) cookieString += '; Secure';
+              if (options?.sameSite) cookieString += `; SameSite=${options.sameSite}`;
+              if (options?.path) cookieString += `; Path=${options.path}`;
+              if (options?.maxAge) cookieString += `; Max-Age=${options.maxAge}`;
+              
+              return cookieString;
+            });
+            
+            res.setHeader('Set-Cookie', cookieStrings);
+          },
+        },
+      }
+    );
 
-    if (!accessToken) {
+    // Get current user from session cookies
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Set session
-    const { data: { session }, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken
-    });
-
-    if (error || !session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-
     // Return user info
-    const user = session.user;
     return res.json({
       id: user.id,
       email: user.email,

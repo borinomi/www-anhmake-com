@@ -1,8 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const { createServerClient } = require('@supabase/ssr');
 
 module.exports = async function handler(req, res) {
   const { code } = req.query;
@@ -12,30 +8,47 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // Create Supabase client with proper cookie handling
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            const cookieHeader = req.headers.cookie;
+            if (!cookieHeader) return [];
+            
+            return cookieHeader.split(';').map(cookie => {
+              const [name, value] = cookie.trim().split('=');
+              return { name, value };
+            });
+          },
+          setAll(cookiesToSet) {
+            const cookieStrings = cookiesToSet.map(({ name, value, options }) => {
+              let cookieString = `${name}=${value}`;
+              
+              if (options?.httpOnly) cookieString += '; HttpOnly';
+              if (options?.secure) cookieString += '; Secure';
+              if (options?.sameSite) cookieString += `; SameSite=${options.sameSite}`;
+              if (options?.path) cookieString += `; Path=${options.path}`;
+              if (options?.maxAge) cookieString += `; Max-Age=${options.maxAge}`;
+              
+              return cookieString;
+            });
+            
+            res.setHeader('Set-Cookie', cookieStrings);
+          },
+        },
+      }
+    );
+
     // Exchange code for session
-    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
       console.error('Session exchange error:', error);
       return res.redirect('https://www.anhmake.com/?error=auth_failed');
     }
-
-    if (!session) {
-      return res.redirect('https://www.anhmake.com/?error=no_session');
-    }
-
-    // Set session cookies
-    const { access_token, refresh_token } = session;
-    
-    console.log('Setting cookies for user:', session.user.email);
-    console.log('Access token length:', access_token?.length);
-    console.log('Refresh token length:', refresh_token?.length);
-    
-    // Set httpOnly cookies for security
-    res.setHeader('Set-Cookie', [
-      `sb-access-token=${access_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600`,
-      `sb-refresh-token=${refresh_token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${7 * 24 * 60 * 60}` // 7 days
-    ]);
 
     // Redirect back to main page
     return res.redirect('https://www.anhmake.com/');
