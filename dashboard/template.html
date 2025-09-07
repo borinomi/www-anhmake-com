@@ -927,14 +927,6 @@
             }
             
             try {
-                let response;
-                const cardData = {
-                    title,
-                    description,
-                    icon: icon || 'logo.png',
-                    card_id: dashboardId  // Parent dashboard ID
-                };
-                
                 // Use unified cards API for all card types
                 const response = await fetch('/api/cards', {
                     method: 'POST',
@@ -949,7 +941,7 @@
                     })
                 });
                 
-                if (response && response.ok) {
+                if (response.ok) {
                     closeCardModal();
                     loadSectionsAndCards(); // Reload dashboard
                 } else {
