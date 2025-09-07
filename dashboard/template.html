@@ -518,7 +518,7 @@
                 }
 
                 // Fetch dashboard card data from cards table
-                const response = await fetch(`/api/dashboard-data?id=${dashboardId}`);
+                const response = await fetch(`/api/cards/${dashboardId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch dashboard data: ${response.statusText}`);
                 }
@@ -563,26 +563,15 @@
                     return;
                 }
 
-                // Load cards for each section in parallel
+                // Load cards for this dashboard using unified cards API
                 const sectionsWithCards = await Promise.all(
                     sectionsData.map(async (section) => {
-                        const [urlsResponse, codeResponse] = await Promise.all([
-                            fetch(`/api/urls?card_id=${dashboardId}`),
-                            fetch(`/api/code-snippets?card_id=${dashboardId}`)
-                        ]);
-                        
-                        const urlsData = urlsResponse.ok ? await urlsResponse.json() : [];
-                        const codeResponse_data = codeResponse.ok ? await codeResponse.json() : {};
-                        const codeData = codeResponse_data.snippets || [];
-                        
-                        const allCards = [
-                            ...urlsData.map(url => ({ ...url, type: 'url' })),
-                            ...codeData.map(code => ({ ...code, type: 'code' }))
-                        ];
+                        const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`);
+                        const cardsData = cardsResponse.ok ? await cardsResponse.json() : [];
                         
                         return {
                             ...section,
-                            cards: allCards
+                            cards: cardsData
                         };
                     })
                 );
@@ -807,7 +796,7 @@
                 
                 if (response && response.ok) {
                     closeCardModal();
-                    loadDashboard(); // Reload dashboard
+                    loadSectionsAndCards(); // Reload dashboard
                 } else {
                     alert('카드 삭제에 실패했습니다.');
                 }
@@ -958,7 +947,7 @@
                 
                 if (response && response.ok) {
                     closeCardModal();
-                    loadDashboard(); // Reload dashboard
+                    loadSectionsAndCards(); // Reload dashboard
                 } else {
                     alert('카드 저장에 실패했습니다.');
                 }
