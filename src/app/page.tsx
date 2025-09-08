@@ -409,7 +409,55 @@ export default function Home() {
                 )}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button type="button" id="deleteCardBtn" className="btn-secondary" style={{ background: '#dc2626', display: 'none' }}>삭제</button>
+                <button 
+                  type="button" 
+                  id="deleteCardBtn" 
+                  className="btn-secondary" 
+                  style={{ background: '#dc2626', display: (modalType === 'editCard' || modalType === 'editSection') ? 'block' : 'none' }}
+                  onClick={async () => {
+                    if (modalType === 'editCard' && modalData?.id && modalData?.sectionId) {
+                      if (confirm('이 카드를 삭제하시겠습니까?')) {
+                        try {
+                          const response = await fetch('/api/cards', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: modalData.id })
+                          })
+                          if (response.ok) {
+                            closeModal()
+                            loadSections()
+                          } else {
+                            alert('카드 삭제에 실패했습니다.')
+                          }
+                        } catch (error) {
+                          console.error('Error:', error)
+                          alert('삭제 중 오류가 발생했습니다.')
+                        }
+                      }
+                    } else if (modalType === 'editSection' && modalData?.sectionId) {
+                      if (confirm('이 섹션을 삭제하시겠습니까?')) {
+                        try {
+                          const response = await fetch('/api/sections', {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: modalData.sectionId })
+                          })
+                          if (response.ok) {
+                            closeModal()
+                            loadSections()
+                          } else {
+                            alert('섹션 삭제에 실패했습니다.')
+                          }
+                        } catch (error) {
+                          console.error('Error:', error)
+                          alert('삭제 중 오류가 발생했습니다.')
+                        }
+                      }
+                    }
+                  }}
+                >
+                  삭제
+                </button>
                 <div>
                   <button type="button" className="btn-secondary" onClick={closeModal}>
                     취소

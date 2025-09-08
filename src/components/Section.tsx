@@ -41,7 +41,7 @@ export default function Section({
         }
         break
       case 'dashboard':
-        window.open(`/dashboard/${card.id}`, '_blank')
+        window.location.href = `/dashboard/${card.id}`
         break
       case 'code':
         window.open(`/code/${card.id}`, '_blank')
