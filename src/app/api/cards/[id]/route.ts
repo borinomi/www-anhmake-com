@@ -7,7 +7,7 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { id } = await context.params
 
     if (!id) {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { id } = await context.params
     const body = await request.json()
     const { title, description, icon, type, url } = body
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { id } = await context.params
 
     if (!id) {

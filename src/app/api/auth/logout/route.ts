@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 export async function POST(_request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     const { error } = await supabase.auth.signOut()
 

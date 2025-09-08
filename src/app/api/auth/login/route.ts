@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { NextRequest } from 'next/server'
 
 export async function GET(_request: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
