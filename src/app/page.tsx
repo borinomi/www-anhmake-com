@@ -118,6 +118,21 @@ export default function Home() {
     url?: string
   } | null>(null)
 
+  // Load available icons
+  const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
+
+  const loadAvailableIcons = async () => {
+    try {
+      const response = await fetch('/api/icons')
+      if (response.ok) {
+        const icons = await response.json()
+        setAvailableIcons(icons)
+      }
+    } catch (error) {
+      console.error('Error loading icons:', error)
+    }
+  }
+
   // Modal handlers
   const handleAddCard = (sectionId: string) => {
     if (!currentUser) return
@@ -162,6 +177,7 @@ export default function Home() {
   useEffect(() => {
     checkAuthState()
     loadSections()
+    loadAvailableIcons()
   }, [])
 
   if (loading) {
@@ -235,7 +251,7 @@ export default function Home() {
               </h3>
               <span className="close" onClick={closeModal}>&times;</span>
             </div>
-            <form onSubmit={async (e) => {
+            <form id="mainForm" onSubmit={async (e) => {
               e.preventDefault()
               const formData = new FormData(e.target as HTMLFormElement)
               
@@ -323,12 +339,13 @@ export default function Home() {
             }}>
               <div className="form-fields">
                 {(modalType === 'addSection' || modalType === 'editSection') && (
-                  <div className="field-group">
-                    <label htmlFor="sectionTitle">섹션 제목</label>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="sectionTitle">섹션 제목</label>
                     <input 
                       type="text" 
                       id="sectionTitle" 
                       name="sectionTitle"
+                      className="form-input"
                       defaultValue={modalData?.title || ''} 
                       required 
                     />
@@ -336,60 +353,71 @@ export default function Home() {
                 )}
                 {(modalType === 'addCard' || modalType === 'editCard') && (
                   <>
-                    <div className="field-group">
-                      <label htmlFor="cardTitle">카드 제목</label>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="cardType">카드 타입</label>
+                      <select id="cardType" name="cardType" className="form-select" defaultValue={modalData?.type || 'url'}>
+                        <option value="url">URL - 외부 링크</option>
+                        <option value="dashboard">Dashboard - 하위 카드 시스템</option>
+                        <option value="code">Code - 코드 스니펫 보드</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="cardTitle">제목</label>
                       <input 
                         type="text" 
                         id="cardTitle" 
                         name="cardTitle"
+                        className="form-input"
+                        placeholder="카드 제목"
                         defaultValue={modalData?.title || ''} 
                         required 
                       />
                     </div>
-                    <div className="field-group">
-                      <label htmlFor="cardDescription">카드 설명</label>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="cardDescription">설명</label>
                       <textarea 
                         id="cardDescription" 
                         name="cardDescription"
+                        className="form-textarea"
+                        placeholder="카드 설명"
                         defaultValue={modalData?.description || ''}
+                        required
                       ></textarea>
                     </div>
-                    <div className="field-group">
-                      <label htmlFor="cardType">카드 타입</label>
-                      <select id="cardType" name="cardType" defaultValue={modalData?.type || 'url'}>
-                        <option value="url">URL</option>
-                        <option value="dashboard">대시보드</option>
-                        <option value="code">코드</option>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="cardIcon">아이콘 선택</label>
+                      <select id="cardIcon" name="cardIcon" className="form-select" defaultValue={modalData?.icon || 'logo.png'}>
+                        {availableIcons.map(iconName => (
+                          <option key={iconName} value={iconName}>
+                            {iconName === 'logo.png' ? '기본 아이콘 (logo.png)' : iconName.replace('logo_', '').replace('logo-', '').replace('.png', '')}
+                          </option>
+                        ))}
                       </select>
                     </div>
-                    <div className="field-group">
-                      <label htmlFor="cardUrl">URL (URL 타입일 때)</label>
+                    <div className="form-group" id="urlFields">
+                      <label className="form-label" htmlFor="cardUrl">URL</label>
                       <input 
                         type="url" 
                         id="cardUrl" 
                         name="cardUrl"
+                        className="form-input"
+                        placeholder="https://example.com"
                         defaultValue={modalData?.url || ''} 
-                      />
-                    </div>
-                    <div className="field-group">
-                      <label htmlFor="cardIcon">아이콘</label>
-                      <input 
-                        type="text" 
-                        id="cardIcon" 
-                        name="cardIcon"
-                        defaultValue={modalData?.icon || 'logo.png'} 
                       />
                     </div>
                   </>
                 )}
               </div>
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={closeModal}>
-                  취소
-                </button>
-                <button type="submit" className="btn-primary">
-                  {(modalType === 'addSection' || modalType === 'addCard') ? '추가' : '수정'}
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button type="button" id="deleteCardBtn" className="btn-secondary" style={{ background: '#dc2626', display: 'none' }}>삭제</button>
+                <div>
+                  <button type="button" className="btn-secondary" onClick={closeModal}>
+                    취소
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    저장
+                  </button>
+                </div>
               </div>
             </form>
           </div>

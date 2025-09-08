@@ -402,6 +402,7 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s;
+    margin-left: 0.5rem;
 }
 
 .btn-primary:hover {

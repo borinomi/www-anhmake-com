@@ -398,11 +398,13 @@ export default function CodePage() {
         }
 
         .modal-header {
-          padding: 2rem 2rem 1rem;
-          border-bottom: 1px solid #e2e8f0;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 2rem 2rem 1rem;
         }
 
         .modal-title {
@@ -413,10 +415,11 @@ export default function CodePage() {
         }
 
         .close {
-          font-size: 2rem;
+          font-size: 1.5rem;
           font-weight: bold;
           color: #64748b;
           cursor: pointer;
+          transition: color 0.3s;
           line-height: 1;
           padding: 0;
           background: none;
@@ -471,31 +474,33 @@ export default function CodePage() {
         }
 
         .btn-primary, .btn-secondary {
-          padding: 0.75rem 2rem;
+          padding: 0.75rem 1.5rem;
           border: none;
           border-radius: 0.5rem;
           font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s;
         }
 
         .btn-primary {
-          background: #3b82f6;
+          background: #4338ca;
           color: white;
+          margin-left: 0.5rem;
         }
 
         .btn-primary:hover {
-          background: #2563eb;
+          background: #3730a3;
+          transform: translateY(-2px);
         }
 
         .btn-secondary {
-          background: #f3f4f6;
-          color: #374151;
-          border: 1px solid #d1d5db;
+          background: #6b7280;
+          color: white;
         }
 
         .btn-secondary:hover {
-          background: #e5e7eb;
+          background: #4b5563;
+          transform: translateY(-2px);
         }
 
         .empty-state {
@@ -635,13 +640,16 @@ export default function CodePage() {
               />
             </div>
             
-            <div className="form-actions">
-              <button type="button" className="btn-secondary" onClick={closeModal}>
-                취소
-              </button>
-              <button type="submit" className="btn-primary">
-                {editingId ? '수정' : '저장'}
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button type="button" id="deleteCodeBtn" className="btn-secondary" style={{ background: '#dc2626', display: editingId ? 'block' : 'none' }} onClick={() => editingId && deleteCode(editingId)}>삭제</button>
+              <div>
+                <button type="button" className="btn-secondary" onClick={closeModal}>
+                  취소
+                </button>
+                <button type="submit" className="btn-primary">
+                  저장
+                </button>
+              </div>
             </div>
           </form>
         </div>

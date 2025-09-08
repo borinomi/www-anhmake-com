@@ -48,6 +48,21 @@ export default function DashboardPage() {
     url?: string
   } | null>(null)
 
+  // Load available icons
+  const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
+
+  const loadAvailableIcons = async () => {
+    try {
+      const response = await fetch('/api/icons')
+      if (response.ok) {
+        const icons = await response.json()
+        setAvailableIcons(icons)
+      }
+    } catch (error) {
+      console.error('Error loading icons:', error)
+    }
+  }
+
   const dashboardId = params.id as string
 
   const checkAuth = useCallback(async () => {
@@ -98,6 +113,7 @@ export default function DashboardPage() {
   useEffect(() => {
     checkAuth()
     loadDashboard()
+    loadAvailableIcons()
   }, [checkAuth, loadDashboard])
 
   // Modal handlers
@@ -280,6 +296,118 @@ export default function DashboardPage() {
             padding: 1rem;
           }
         }
+
+        /* Modal Styles */
+        .modal {
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+          background: white;
+          margin: 5% auto;
+          padding: 2rem;
+          border-radius: 1rem;
+          width: 90%;
+          max-width: 500px;
+          position: relative;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .close {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: #64748b;
+          cursor: pointer;
+          transition: color 0.3s;
+        }
+
+        .close:hover {
+          color: #1e293b;
+        }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .form-input, .form-select, .form-textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 2px solid #e5e7eb;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+          outline: none;
+          border-color: #4338ca;
+        }
+
+        .form-textarea {
+          resize: vertical;
+          min-height: 100px;
+        }
+
+        .btn-primary {
+          background: #4338ca;
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.5rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+          background: #3730a3;
+          transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+          background: #6b7280;
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.5rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+          background: #4b5563;
+          transform: translateY(-2px);
+        }
       `}</style>
       
       <div className="container">
@@ -430,12 +558,13 @@ export default function DashboardPage() {
               }}>
                 <div className="form-fields">
                   {(modalType === 'addSection' || modalType === 'editSection') && (
-                    <div className="field-group">
-                      <label htmlFor="sectionTitle">섹션 제목</label>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="sectionTitle">섹션 제목</label>
                       <input 
                         type="text" 
                         id="sectionTitle" 
                         name="sectionTitle"
+                        className="form-input"
                         defaultValue={modalData?.title || ''} 
                         required 
                       />
@@ -443,60 +572,71 @@ export default function DashboardPage() {
                   )}
                   {(modalType === 'addCard' || modalType === 'editCard') && (
                     <>
-                      <div className="field-group">
-                        <label htmlFor="cardTitle">카드 제목</label>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="cardType">카드 타입</label>
+                        <select id="cardType" name="cardType" className="form-select" defaultValue={modalData?.type || 'url'}>
+                          <option value="url">URL - 외부 링크</option>
+                          <option value="dashboard">Dashboard - 하위 카드 시스템</option>
+                          <option value="code">Code - 코드 스니펫 보드</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="cardTitle">제목</label>
                         <input 
                           type="text" 
                           id="cardTitle" 
                           name="cardTitle"
+                          className="form-input"
+                          placeholder="카드 제목"
                           defaultValue={modalData?.title || ''} 
                           required 
                         />
                       </div>
-                      <div className="field-group">
-                        <label htmlFor="cardDescription">카드 설명</label>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="cardDescription">설명</label>
                         <textarea 
                           id="cardDescription" 
                           name="cardDescription"
+                          className="form-textarea"
+                          placeholder="카드 설명"
                           defaultValue={modalData?.description || ''}
+                          required
                         ></textarea>
                       </div>
-                      <div className="field-group">
-                        <label htmlFor="cardType">카드 타입</label>
-                        <select id="cardType" name="cardType" defaultValue={modalData?.type || 'url'}>
-                          <option value="url">URL</option>
-                          <option value="dashboard">대시보드</option>
-                          <option value="code">코드</option>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="cardIcon">아이콘 선택</label>
+                        <select id="cardIcon" name="cardIcon" className="form-select" defaultValue={modalData?.icon || 'logo.png'}>
+                          {availableIcons.map(iconName => (
+                            <option key={iconName} value={iconName}>
+                              {iconName === 'logo.png' ? '기본 아이콘 (logo.png)' : iconName.replace('logo_', '').replace('logo-', '').replace('.png', '')}
+                            </option>
+                          ))}
                         </select>
                       </div>
-                      <div className="field-group">
-                        <label htmlFor="cardUrl">URL (URL 타입일 때)</label>
+                      <div className="form-group" id="urlFields">
+                        <label className="form-label" htmlFor="cardUrl">URL</label>
                         <input 
                           type="url" 
                           id="cardUrl" 
                           name="cardUrl"
+                          className="form-input"
+                          placeholder="https://example.com"
                           defaultValue={modalData?.url || ''} 
-                        />
-                      </div>
-                      <div className="field-group">
-                        <label htmlFor="cardIcon">아이콘</label>
-                        <input 
-                          type="text" 
-                          id="cardIcon" 
-                          name="cardIcon"
-                          defaultValue={modalData?.icon || 'logo.png'} 
                         />
                       </div>
                     </>
                   )}
                 </div>
-                <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={closeModal}>
-                    취소
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    {(modalType === 'addSection' || modalType === 'addCard') ? '추가' : '수정'}
-                  </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button type="button" id="deleteCardBtn" className="btn-secondary" style={{ background: '#dc2626', display: 'none' }}>삭제</button>
+                  <div>
+                    <button type="button" className="btn-secondary" onClick={closeModal}>
+                      취소
+                    </button>
+                    <button type="submit" className="btn-primary">
+                      {(modalType === 'addSection' || modalType === 'addCard') ? '저장' : '저장'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
