@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Section from '@/components/Section'
@@ -37,21 +37,16 @@ export default function DashboardPage() {
 
   const dashboardId = params.id as string
 
-  useEffect(() => {
-    checkAuth()
-    loadDashboard()
-  }, [dashboardId])
-
-  async function checkAuth() {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/user')
       setIsAuthorized(response.ok)
-    } catch (error) {
+    } catch {
       setIsAuthorized(false)
     }
-  }
+  }, [])
 
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       // Load card data
       const cardResponse = await fetch(`/api/cards/${dashboardId}`)
@@ -80,12 +75,17 @@ export default function DashboardPage() {
         
         setSections(sectionsWithCards)
       }
-    } catch (error) {
-      console.error('Failed to load dashboard:', error)
+    } catch {
+      console.error('Failed to load dashboard')
     } finally {
       setLoading(false)
     }
-  }
+  }, [dashboardId])
+
+  useEffect(() => {
+    checkAuth()
+    loadDashboard()
+  }, [checkAuth, loadDashboard])
 
   function handleAddCard(sectionId: string) {
     // TODO: Implement add card modal

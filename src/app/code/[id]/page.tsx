@@ -1,8 +1,9 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface CodeSnippet {
   id: number
@@ -32,21 +33,16 @@ export default function CodePage() {
 
   const cardId = params.id as string
 
-  useEffect(() => {
-    checkAuth()
-    loadCodeData()
-  }, [cardId])
-
-  async function checkAuth() {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/user')
       setIsAuthorized(response.ok)
-    } catch (error) {
+    } catch {
       setIsAuthorized(false)
     }
-  }
+  }, [])
 
-  async function loadCodeData() {
+  const loadCodeData = useCallback(async () => {
     try {
       // Load card data
       const cardResponse = await fetch(`/api/cards/${cardId}`)
@@ -61,12 +57,17 @@ export default function CodePage() {
         const codeData = await codeResponse.json()
         setCodeSnippets(codeData)
       }
-    } catch (error) {
-      console.error('Failed to load code data:', error)
+    } catch {
+      console.error('Failed to load code data')
     } finally {
       setLoading(false)
     }
-  }
+  }, [cardId])
+
+  useEffect(() => {
+    checkAuth()
+    loadCodeData()
+  }, [checkAuth, loadCodeData])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -193,41 +194,63 @@ export default function CodePage() {
           margin: 0 auto;
         }
 
-        .header {
-          text-align: center;
-          margin-bottom: 3rem;
+        .page-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          margin-bottom: 2rem;
+          width: fit-content;
         }
 
-        .header h1 {
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 1rem;
+        .page-logo {
+          width: 60px;
+          height: 60px;
+          flex-shrink: 0;
+        }
+
+        .page-header-text {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .page-header-line {
           color: #ffffff;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          font-weight: 600;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+          margin: 0;
+          line-height: 1.4;
         }
 
-        .header p {
-          color: #e2e8f0;
-          font-size: 1.1rem;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        .page-header-line:first-child {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+        .page-header-line:nth-child(2) {
+          font-size: 1rem;
         }
 
         .back-btn {
-          position: absolute;
-          top: 2rem;
-          left: 2rem;
-          padding: 0.75rem 1.5rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
           background: rgba(0, 0, 0, 0.3);
-          color: white;
+          color: #ffffff;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 2rem;
           text-decoration: none;
-          border-radius: 0.5rem;
           font-weight: 500;
-          transition: background-color 0.3s;
-          backdrop-filter: blur(10px);
+          font-size: 0.9rem;
+          margin-bottom: 2rem;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .back-btn:hover {
           background: rgba(0, 0, 0, 0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .add-btn {
@@ -518,12 +541,20 @@ export default function CodePage() {
         }
       `}</style>
       
-      <Link href="javascript:history.back()" className="back-btn">← 뒤로 가기</Link>
-      
       <div className="container">
-        <div className="header">
-          <h1>{cardData ? `${cardData.title} - Code Snippets` : 'Code Snippets'}</h1>
-          <p>{cardData ? cardData.description : '코드 스니펫을 관리하고 공유하세요'}</p>
+        <Link href="/" className="back-btn">← 메인으로</Link>
+        <div className="page-header">
+          <Image 
+            src={cardData?.icon ? `/icon/${cardData.icon}` : '/logo.png'} 
+            alt="Code" 
+            width={60}
+            height={60}
+            className="page-logo"
+          />
+          <div className="page-header-text">
+            <div className="page-header-line">{cardData ? cardData.title : 'Code Snippets'}</div>
+            <div className="page-header-line">{cardData ? cardData.description : '코드 스니펫을 관리하고 공유하세요'}</div>
+          </div>
         </div>
 
         {isAuthorized && (
