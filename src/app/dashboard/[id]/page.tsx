@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Section from '@/components/Section'
 
 interface Card {
@@ -67,7 +68,7 @@ export default function DashboardPage() {
         
         // Load cards for each section
         const sectionsWithCards = await Promise.all(
-          sectionsData.map(async (section: any) => {
+          sectionsData.map(async (section: { id: string; title: string }) => {
             const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`)
             const cardsData = cardsResponse.ok ? await cardsResponse.json() : []
             return {
@@ -247,13 +248,12 @@ export default function DashboardPage() {
         <Link href="/" className="back-btn">← 메인으로</Link>
         
         <div className="page-header">
-          <img 
+          <Image 
             src={pageData.icon ? `/icon/${pageData.icon}` : '/logo.png'} 
             alt="Dashboard" 
+            width={60}
+            height={60}
             className="page-logo"
-            onError={(e) => {
-              e.currentTarget.src = '/logo.png'
-            }}
           />
           <div className="page-header-text">
             <div className="page-header-line">{pageData.title}</div>
