@@ -24,6 +24,7 @@ interface SectionType {
   id: string
   title: string
   cards: Card[]
+  section_order?: number
 }
 
 export default function Home() {
@@ -273,12 +274,15 @@ export default function Home() {
                   }
                 } else if (modalType === 'editSection') {
                   const title = formData.get('sectionTitle') as string
+                  // 현재 섹션 정보를 가져와서 section_order 보존
+                  const currentSection = sections.find(s => s.id === modalData?.sectionId)
                   const response = await fetch('/api/sections', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       id: modalData?.sectionId,
-                      title
+                      title,
+                      section_order: currentSection?.section_order || 1
                     })
                   })
                   if (response.ok) {
