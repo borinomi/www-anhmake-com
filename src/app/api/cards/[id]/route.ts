@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { data: cardData, error: cardError } = await supabase
       .from('cards')
       .select('*')
-      .eq('id', parseInt(id))
+      .eq('id', id)
       .single()
 
     if (cardError) {
@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const { data, error } = await supabase
       .from('cards')
       .update(updateData)
-      .eq('id', parseInt(id))
+      .eq('id', id)
       .select()
       .single()
 
@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { error } = await supabase
       .from('cards')
       .delete()
-      .eq('id', parseInt(id))
+      .eq('id', id)
 
     if (error) {
       console.error('Delete error:', error)
