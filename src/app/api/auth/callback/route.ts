@@ -2,14 +2,15 @@ import { createClient } from '@/utils/supabase/server'
 import { NextRequest } from 'next/server'
 import { redirect } from 'next/navigation'
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const origin = request.nextUrl.origin
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
+  const next = searchParams.get('next') ?? '/'
 
   if (!code) {
-    redirect(`${siteUrl}/?error=no_code`)
+    redirect(`${origin}/?error=no_code`)
   }
 
   try {
@@ -19,12 +20,22 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Session exchange error:', error)
-      redirect(`${siteUrl}/?error=auth_failed`)
+      redirect(`${origin}/?error=auth_failed`)
     }
 
-    redirect(siteUrl)
+    // Handle forwarded host for production deployments (like Vercel)
+    const forwardedHost = request.headers.get('x-forwarded-host')
+    const isLocalEnv = process.env.NODE_ENV === 'development'
+    
+    if (isLocalEnv) {
+      redirect(`${origin}${next}`)
+    } else if (forwardedHost) {
+      redirect(`https://${forwardedHost}${next}`)
+    } else {
+      redirect(`${origin}${next}`)
+    }
   } catch (error) {
     console.error('Callback error:', error)
-    redirect(`${siteUrl}/?error=callback_failed`)
+    redirect(`${origin}/?error=callback_failed`)
   }
 }

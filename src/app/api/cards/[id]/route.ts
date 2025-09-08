@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextRequest } from 'next/server'
 
+export const runtime = 'nodejs'
+
 interface RouteContext {
   params: Promise<{ id: string }>
 }

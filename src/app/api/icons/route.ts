@@ -1,8 +1,9 @@
-import { NextRequest } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-export async function GET(_request: NextRequest) {
+export const runtime = 'nodejs'
+
+export async function GET() {
   try {
     // Get the icon directory path from public folder
     const iconDir = path.join(process.cwd(), 'public', 'icon')
