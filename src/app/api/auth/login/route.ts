@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (data.url) {
-      redirect(data.url)
+      return NextResponse.redirect(data.url)
     }
 
     return new Response(JSON.stringify({ error: 'No auth URL returned' }), {
