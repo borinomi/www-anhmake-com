@@ -3,16 +3,7 @@ import { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
-    // First, test basic API route functionality
-    console.log('API Route called')
-    console.log('Environment check:', {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'present' : 'missing'
-    })
-    
     const supabase = createClient()
-    console.log('Supabase client created')
-    
     const { searchParams } = new URL(request.url)
     const parent_card_id = searchParams.get('parent_card_id')
     
@@ -27,17 +18,11 @@ export async function GET(request: NextRequest) {
       query = query.is('parent_card_id', null)
     }
     
-    console.log('About to execute query')
     const { data, error } = await query.order('section_order', { ascending: true })
-    console.log('Query completed:', { data: data?.length, error: error?.message })
     
     if (error) {
       console.error('Sections fetch error:', error)
-      return new Response(JSON.stringify({ 
-        error: 'Failed to fetch sections',
-        details: error.message,
-        code: error.code
-      }), {
+      return new Response(JSON.stringify({ error: 'Failed to fetch sections' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -49,11 +34,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('API Error:', error)
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error', 
-      details: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     })

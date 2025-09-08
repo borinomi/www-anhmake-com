@@ -62,7 +62,7 @@ export default function Home() {
       
       // Load cards for each section
       const sectionsWithCards = await Promise.all(
-        sectionsData.map(async (section: any) => {
+        sectionsData.map(async (section: { id: string; title: string }) => {
           const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`)
           const cardsData = cardsResponse.ok ? await cardsResponse.json() : []
           
