@@ -105,23 +105,49 @@ export default function Home() {
     }
   }
 
-  // Modal handlers (to be implemented with modals)
+  // Modal state
+  const [showModal, setShowModal] = useState(false)
+  const [modalType, setModalType] = useState<'addCard' | 'editSection' | 'editCard' | 'addSection' | null>(null)
+  const [modalData, setModalData] = useState<any>(null)
+
+  // Modal handlers
   const handleAddCard = (sectionId: string) => {
     if (!currentUser) return
-    // TODO: Implement add card modal
-    console.log('Add card to section:', sectionId)
+    setModalType('addCard')
+    setModalData({ sectionId })
+    setShowModal(true)
   }
 
   const handleEditSection = (sectionId: string, title: string) => {
     if (!currentUser) return
-    // TODO: Implement edit section modal
-    console.log('Edit section:', sectionId, title)
+    setModalType('editSection')
+    setModalData({ sectionId, title })
+    setShowModal(true)
   }
 
   const handleEditCard = (cardId: string, sectionId: string) => {
     if (!currentUser) return
-    // TODO: Implement edit card modal
-    console.log('Edit card:', cardId, 'in section:', sectionId)
+    const card = sections
+      .find(s => s.id === sectionId)
+      ?.cards.find(c => c.id === cardId)
+    if (card) {
+      setModalType('editCard')
+      setModalData({ ...card, sectionId })
+      setShowModal(true)
+    }
+  }
+
+  const handleAddSection = () => {
+    if (!currentUser) return
+    setModalType('addSection')
+    setModalData(null)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setModalType(null)
+    setModalData(null)
   }
 
   // Initialize on mount
@@ -171,10 +197,7 @@ export default function Home() {
         <div id="addSectionContainer" style={{ marginBottom: '2rem' }}>
           <button 
             className="btn-section-action" 
-            onClick={() => {
-              // TODO: Implement add section modal
-              console.log('Add section')
-            }}
+            onClick={handleAddSection}
             title="섹션 추가" 
             style={{ 
               width: 'auto', 
@@ -190,6 +213,180 @@ export default function Home() {
       <div className="contact">
         Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal" style={{ display: 'block' }}>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">
+                {modalType === 'addSection' && '섹션 추가'}
+                {modalType === 'editSection' && '섹션 수정'}
+                {modalType === 'addCard' && '카드 추가'}
+                {modalType === 'editCard' && '카드 수정'}
+              </h3>
+              <span className="close" onClick={closeModal}>&times;</span>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              const formData = new FormData(e.target as HTMLFormElement)
+              
+              try {
+                if (modalType === 'addSection') {
+                  const title = formData.get('sectionTitle') as string
+                  const response = await fetch('/api/sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: `section_${Date.now()}`,
+                      title,
+                      section_order: 1
+                    })
+                  })
+                  if (response.ok) {
+                    loadSections()
+                    closeModal()
+                  }
+                } else if (modalType === 'editSection') {
+                  const title = formData.get('sectionTitle') as string
+                  const response = await fetch('/api/sections', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: modalData.sectionId,
+                      title
+                    })
+                  })
+                  if (response.ok) {
+                    loadSections()
+                    closeModal()
+                  }
+                } else if (modalType === 'addCard') {
+                  const title = formData.get('cardTitle') as string
+                  const description = formData.get('cardDescription') as string
+                  const type = formData.get('cardType') as string
+                  const url = formData.get('cardUrl') as string
+                  const icon = formData.get('cardIcon') as string
+                  
+                  const response = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      section_id: modalData.sectionId,
+                      title,
+                      description,
+                      type,
+                      url: type === 'url' ? url : null,
+                      icon
+                    })
+                  })
+                  if (response.ok) {
+                    loadSections()
+                    closeModal()
+                  }
+                } else if (modalType === 'editCard') {
+                  const title = formData.get('cardTitle') as string
+                  const description = formData.get('cardDescription') as string
+                  const type = formData.get('cardType') as string
+                  const url = formData.get('cardUrl') as string
+                  const icon = formData.get('cardIcon') as string
+                  
+                  const response = await fetch('/api/cards', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: modalData.id,
+                      title,
+                      description,
+                      type,
+                      url: type === 'url' ? url : null,
+                      icon
+                    })
+                  })
+                  if (response.ok) {
+                    loadSections()
+                    closeModal()
+                  }
+                }
+              } catch (error) {
+                console.error('Error:', error)
+                alert('저장에 실패했습니다.')
+              }
+            }}>
+              <div className="form-fields">
+                {(modalType === 'addSection' || modalType === 'editSection') && (
+                  <div className="field-group">
+                    <label htmlFor="sectionTitle">섹션 제목</label>
+                    <input 
+                      type="text" 
+                      id="sectionTitle" 
+                      name="sectionTitle"
+                      defaultValue={modalData?.title || ''} 
+                      required 
+                    />
+                  </div>
+                )}
+                {(modalType === 'addCard' || modalType === 'editCard') && (
+                  <>
+                    <div className="field-group">
+                      <label htmlFor="cardTitle">카드 제목</label>
+                      <input 
+                        type="text" 
+                        id="cardTitle" 
+                        name="cardTitle"
+                        defaultValue={modalData?.title || ''} 
+                        required 
+                      />
+                    </div>
+                    <div className="field-group">
+                      <label htmlFor="cardDescription">카드 설명</label>
+                      <textarea 
+                        id="cardDescription" 
+                        name="cardDescription"
+                        defaultValue={modalData?.description || ''}
+                      ></textarea>
+                    </div>
+                    <div className="field-group">
+                      <label htmlFor="cardType">카드 타입</label>
+                      <select id="cardType" name="cardType" defaultValue={modalData?.type || 'url'}>
+                        <option value="url">URL</option>
+                        <option value="dashboard">대시보드</option>
+                        <option value="code">코드</option>
+                      </select>
+                    </div>
+                    <div className="field-group">
+                      <label htmlFor="cardUrl">URL (URL 타입일 때)</label>
+                      <input 
+                        type="url" 
+                        id="cardUrl" 
+                        name="cardUrl"
+                        defaultValue={modalData?.url || ''} 
+                      />
+                    </div>
+                    <div className="field-group">
+                      <label htmlFor="cardIcon">아이콘</label>
+                      <input 
+                        type="text" 
+                        id="cardIcon" 
+                        name="cardIcon"
+                        defaultValue={modalData?.icon || 'logo.png'} 
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeModal}>
+                  취소
+                </button>
+                <button type="submit" className="btn-primary">
+                  {(modalType === 'addSection' || modalType === 'addCard') ? '추가' : '수정'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
