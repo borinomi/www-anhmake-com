@@ -1,20 +1,29 @@
 {
-  "name": "anhmake-website",
-  "version": "1.0.0",
-  "description": "ANHMAKE website with Supabase integration",
-  "main": "index.html",
+  "name": "anhmake-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint"
+  },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.57.2",
+    "next": "15.5.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   },
-  "scripts": {
-    "dev": "npx serve .",
-    "build": "echo 'No build process required'"
-  },
-  "keywords": [
-    "website",
-    "supabase"
-  ],
-  "author": "ANHMAKE",
-  "license": "MIT"
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
 }
