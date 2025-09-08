@@ -41,10 +41,16 @@ export default function Section({
         }
         break
       case 'dashboard':
-        window.open(`./dashboard/template.html?id=${card.id}`, '_blank')
+        // For dashboard cards, navigate to a dashboard route or handle differently
+        console.log('Dashboard card clicked:', card.id)
+        // TODO: Implement dashboard route navigation
+        alert(`Dashboard feature not implemented yet. Card ID: ${card.id}`)
         break
       case 'code':
-        window.open(`./code/template.html?id=${card.id}`, '_blank')
+        // For code cards, navigate to a code route or handle differently  
+        console.log('Code card clicked:', card.id)
+        // TODO: Implement code route navigation
+        alert(`Code feature not implemented yet. Card ID: ${card.id}`)
         break
     }
   }
