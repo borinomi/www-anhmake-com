@@ -78,8 +78,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       description: description || '',
       icon: icon || 'logo.png',
       type: type || 'dashboard',
-      url: type === 'url' ? url : null,
-      updated_at: new Date().toISOString()
+      url: type === 'url' ? url : null
     }
 
     const { data, error } = await supabase
