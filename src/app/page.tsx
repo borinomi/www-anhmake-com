@@ -108,7 +108,15 @@ export default function Home() {
   // Modal state
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState<'addCard' | 'editSection' | 'editCard' | 'addSection' | null>(null)
-  const [modalData, setModalData] = useState<any>(null)
+  const [modalData, setModalData] = useState<{
+    sectionId?: string
+    title?: string
+    id?: string
+    description?: string
+    icon?: string
+    type?: 'url' | 'dashboard' | 'code'
+    url?: string
+  } | null>(null)
 
   // Modal handlers
   const handleAddCard = (sectionId: string) => {
@@ -253,7 +261,7 @@ export default function Home() {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      id: modalData.sectionId,
+                      id: modalData?.sectionId,
                       title
                     })
                   })
@@ -272,7 +280,7 @@ export default function Home() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      section_id: modalData.sectionId,
+                      section_id: modalData?.sectionId,
                       title,
                       description,
                       type,
@@ -295,7 +303,7 @@ export default function Home() {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      id: modalData.id,
+                      id: modalData?.id,
                       title,
                       description,
                       type,
