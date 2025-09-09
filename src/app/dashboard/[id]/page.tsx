@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
+import SkeletonLoader from '@/components/SkeletonLoader'
 import { useModal } from '@/hooks/useModal'
 
 interface User {
@@ -294,11 +295,7 @@ export default function DashboardPage() {
   // Modal handlers - 이제 useModal 훅에서 제공
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="text-white text-xl">로딩 중...</div>
-      </div>
-    )
+    return <SkeletonLoader isDashboard={dashboardId !== '1'} />
   }
 
   if (!pageData) {
