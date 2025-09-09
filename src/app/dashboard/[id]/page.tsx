@@ -622,6 +622,24 @@ export default function DashboardPage() {
                     // 웹 링크 선택 시 URL 사용, 아니면 기본 아이콘 사용
                     const finalIcon = iconSelect === 'web-link' ? iconUrl : iconSelect
                     
+                    // 낙관적 업데이트: 즉시 UI에 카드 추가
+                    const tempCard: Card = {
+                      id: `temp_${Date.now()}`,
+                      title,
+                      description,
+                      type: type as 'url' | 'dashboard' | 'code',
+                      url: type === 'url' ? url : undefined,
+                      icon: finalIcon
+                    }
+                    
+                    setSections(prev => prev.map(section => 
+                      section.id === modalData?.sectionId 
+                        ? { ...section, cards: [...section.cards, tempCard] }
+                        : section
+                    ))
+                    closeModal()
+                    
+                    // 백그라운드에서 실제 생성
                     const response = await fetch('/api/cards', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
@@ -635,8 +653,16 @@ export default function DashboardPage() {
                       })
                     })
                     if (response.ok) {
+                      // 성공시 실제 데이터로 교체
                       loadDashboard()
-                      closeModal()
+                    } else {
+                      // 실패시 임시 카드 제거
+                      setSections(prev => prev.map(section => 
+                        section.id === modalData?.sectionId 
+                          ? { ...section, cards: section.cards.filter(c => c.id !== tempCard.id) }
+                          : section
+                      ))
+                      alert('카드 추가에 실패했습니다.')
                     }
                   } else if (modalType === 'editCard') {
                     const title = formData.get('cardTitle') as string
@@ -780,21 +806,36 @@ export default function DashboardPage() {
                     onClick={async () => {
                       if (modalType === 'editCard' && modalData?.id && modalData?.sectionId) {
                         if (confirm('이 카드를 삭제하시겠습니까?')) {
+                          // 낙관적 업데이트: 즉시 UI에서 카드 제거
+                          const cardToDelete = modalData.id
+                          const sectionId = modalData.sectionId
+                          
+                          setSections(prev => prev.map(section => 
+                            section.id === sectionId 
+                              ? { ...section, cards: section.cards.filter(c => c.id !== cardToDelete) }
+                              : section
+                          ))
+                          closeModal()
+                          
                           try {
                             const response = await fetch('/api/cards', {
                               method: 'DELETE',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ id: modalData.id })
+                              body: JSON.stringify({ id: cardToDelete })
                             })
                             if (response.ok) {
-                              closeModal()
+                              // 성공시 실제 데이터 다시 로드
                               loadDashboard()
                             } else {
                               alert('카드 삭제에 실패했습니다.')
+                              // 실패시 데이터 복구
+                              loadDashboard()
                             }
                           } catch (error) {
                             console.error('Error:', error)
                             alert('삭제 중 오류가 발생했습니다.')
+                            // 에러시 데이터 복구
+                            loadDashboard()
                           }
                         }
                       } else if (modalType === 'editSection' && modalData?.sectionId) {
