@@ -64,8 +64,7 @@ export async function GET(
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=30, s-maxage=180' // 대시보드는 더 짧은 캐시
+        'Content-Type': 'application/json'
       }
     })
   } catch (error) {
