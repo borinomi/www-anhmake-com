@@ -4,7 +4,19 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import Header from '@/components/Header'
 import Section from '@/components/Section'
+import { useAuth } from '@/hooks/useAuth'
+import { useIcons } from '@/hooks/useIcons'
+
+interface User {
+  id: string
+  email: string
+  name?: string
+  avatar_url?: string
+  role?: string
+  status?: string
+}
 
 interface Card {
   id: string
@@ -34,7 +46,10 @@ export default function DashboardPage() {
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [sections, setSections] = useState<Section[]>([])
   const [loading, setLoading] = useState(true)
-  const [isAuthorized, setIsAuthorized] = useState(false)
+  
+  // 캐싱된 인증 및 아이콘 상태
+  const { user: currentUser, login: handleLogin, logout: handleLogout, isAdmin } = useAuth()
+  const { icons: availableIcons } = useIcons()
   
   // Modal state
   const [showModal, setShowModal] = useState(false)
@@ -49,36 +64,9 @@ export default function DashboardPage() {
     url?: string
   } | null>(null)
 
-  // Load available icons
-  const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
-
-  const loadAvailableIcons = async () => {
-    try {
-      const response = await fetch('/api/icons')
-      if (response.ok) {
-        const icons = await response.json()
-        setAvailableIcons(icons)
-      }
-    } catch (error) {
-      console.error('Error loading icons:', error)
-    }
-  }
 
   const dashboardId = params.id as string
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await fetch('/api/auth/user')
-      if (response.ok) {
-        const user = await response.json()
-        setIsAuthorized(user.role === 'admin')
-      } else {
-        setIsAuthorized(false)
-      }
-    } catch {
-      setIsAuthorized(false)
-    }
-  }, [])
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -134,28 +122,26 @@ export default function DashboardPage() {
   }, [dashboardId])
 
   useEffect(() => {
-    checkAuth()
     loadDashboard()
-    loadAvailableIcons()
-  }, [checkAuth, loadDashboard])
+  }, [loadDashboard])
 
   // Modal handlers
   function handleAddCard(sectionId: string) {
-    if (!isAuthorized) return
+    if (!isAdmin) return
     setModalType('addCard')
     setModalData({ sectionId })
     setShowModal(true)
   }
 
   function handleEditSection(sectionId: string, title: string) {
-    if (!isAuthorized) return
+    if (!isAdmin) return
     setModalType('editSection')
     setModalData({ sectionId, title })
     setShowModal(true)
   }
 
   function handleEditCard(cardId: string, sectionId: string) {
-    if (!isAuthorized) return
+    if (!isAdmin) return
     const card = sections
       .find(s => s.id === sectionId)
       ?.cards.find(c => c.id === cardId)
@@ -167,7 +153,7 @@ export default function DashboardPage() {
   }
 
   function handleAddSection() {
-    if (!isAuthorized) return
+    if (!isAdmin) return
     setModalType('addSection')
     setModalData(null)
     setShowModal(true)
@@ -294,7 +280,8 @@ export default function DashboardPage() {
           margin-top: 2rem;
         }
 
-        .btn-add-section {
+        .btn-add-section,
+        .btn-section-action {
           background: rgba(0, 0, 0, 0.3);
           border: none;
           border-radius: 2rem;
@@ -308,10 +295,28 @@ export default function DashboardPage() {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .btn-add-section:hover {
+        .btn-add-section:hover,
+        .btn-section-action:hover {
           background: rgba(0, 0, 0, 0.5);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .contact {
+          text-align: center;
+          margin-top: 2rem;
+          color: #ffffff;
+          font-weight: 500;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact a {
+          color: #60a5fa;
+          text-decoration: none;
+        }
+
+        .contact a:hover {
+          text-decoration: underline;
         }
 
         @media (max-width: 768px) {
@@ -434,51 +439,69 @@ export default function DashboardPage() {
       `}</style>
       
       <div className="container">
-        <Link href="/" className="back-btn">← 메인으로</Link>
+        {dashboardId !== '1' && (
+          <Link href="/" className="back-btn">← 메인으로</Link>
+        )}
         
-        <div className="page-header">
-          <Image 
-            src={pageData.icon ? 
-              (pageData.icon.startsWith('http') ? pageData.icon : `/icon/${pageData.icon}`) 
-              : '/logo.png'} 
-            alt="Dashboard" 
-            width={60}
-            height={60}
-            className="page-logo"
+        {dashboardId === '1' ? (
+          <Header 
+            user={currentUser}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
           />
-          <div className="page-header-text">
-            <div className="page-header-line">{pageData.title}</div>
-            <div className="page-header-line">{pageData.description}</div>
+        ) : (
+          <div className="page-header">
+            <Image 
+              src={pageData.icon ? 
+                (pageData.icon.startsWith('http') ? pageData.icon : `/icon/${pageData.icon}`) 
+                : '/logo.png'} 
+              alt="Dashboard" 
+              width={60}
+              height={60}
+              className="page-logo"
+            />
+            <div className="page-header-text">
+              <div className="page-header-line">{pageData.title}</div>
+              <div className="page-header-line">{pageData.description}</div>
+            </div>
           </div>
+        )}
+
+        <div id="sectionsContainer">
+          {sections.map(section => (
+            <Section
+              key={section.id}
+              section={section}
+              isAuthorized={isAdmin}
+              onAddCard={handleAddCard}
+              onEditSection={handleEditSection}
+              onEditCard={handleEditCard}
+            />
+          ))}
         </div>
 
-        {sections.length === 0 ? (
-          <div className="empty-dashboard">
-            <p>아직 섹션이 없습니다.</p>
-            {isAuthorized && (
-              <button className="btn-add-section" onClick={handleAddSection}>
-                + 섹션 추가
-              </button>
-            )}
+        {/* Add Section Button (only for admin users) */}
+        {isAdmin && (
+          <div id="addSectionContainer" style={{ marginBottom: '2rem' }}>
+            <button 
+              className="btn-section-action" 
+              onClick={handleAddSection}
+              title="섹션 추가" 
+              style={{ 
+                width: 'auto', 
+                padding: '0.8rem 1.5rem', 
+                borderRadius: '2rem' 
+              }}
+            >
+              + 섹션 추가
+            </button>
           </div>
-        ) : (
-          <>
-            {isAuthorized && (
-              <div style={{ marginBottom: '2rem' }}>
-                <button className="btn-add-section" onClick={handleAddSection}>+ 섹션 추가</button>
-              </div>
-            )}
-            {sections.map(section => (
-              <Section
-                key={section.id}
-                section={section}
-                isAuthorized={isAuthorized}
-                onAddCard={handleAddCard}
-                onEditSection={handleEditSection}
-                onEditCard={handleEditCard}
-              />
-            ))}
-          </>
+        )}
+
+        {dashboardId === '1' && (
+          <div className="contact">
+            Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
+          </div>
         )}
 
         {/* Modal */}
