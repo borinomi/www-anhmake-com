@@ -440,7 +440,7 @@ export default function DashboardPage() {
       
       <div className="container">
         {dashboardId !== '1' && (
-          <Link href="/" className="back-btn">← 메인으로</Link>
+          <Link href="/dashboard/1" className="back-btn">← 메인으로</Link>
         )}
         
         {dashboardId === '1' ? (

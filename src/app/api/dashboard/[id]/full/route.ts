@@ -27,6 +27,7 @@ export async function GET(
           cards!cards_section_id_fkey (*)
         `)
         .eq('parent_card_id', id)
+        .not('id', 'like', 'hidden_%')
         .order('section_order', { ascending: true })
         .order('created_at', { foreignTable: 'cards', ascending: true })
     ])
