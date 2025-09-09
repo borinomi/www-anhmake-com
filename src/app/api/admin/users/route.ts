@@ -1,6 +1,21 @@
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
+
+// 관리자용 서버 클라이언트 (RLS 우회)
+function createAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Service Role Key 사용
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 export async function GET() {
   try {
@@ -29,8 +44,9 @@ export async function GET() {
       })
     }
 
-    // 모든 사용자 목록 조회
-    const { data: users, error: usersError } = await supabase
+    // 관리자 권한으로 모든 사용자 목록 조회 (RLS 우회)
+    const adminClient = createAdminClient()
+    const { data: users, error: usersError } = await adminClient
       .from('signin')
       .select('*')
       .order('created_at', { ascending: false })
@@ -92,8 +108,9 @@ export async function PATCH(request: Request) {
       })
     }
 
-    // 사용자 권한/상태 업데이트
-    const { error: updateError } = await supabase
+    // 관리자 권한으로 사용자 권한/상태 업데이트 (RLS 우회)
+    const adminClient = createAdminClient()
+    const { error: updateError } = await adminClient
       .from('signin')
       .update({ role, status, updated_at: new Date().toISOString() })
       .eq('id', user_id)
@@ -163,8 +180,9 @@ export async function DELETE(request: Request) {
       })
     }
 
-    // signin 테이블에서 사용자 삭제
-    const { error: deleteError } = await supabase
+    // 관리자 권한으로 사용자 삭제 (RLS 우회)
+    const adminClient = createAdminClient()
+    const { error: deleteError } = await adminClient
       .from('signin')
       .delete()
       .eq('id', user_id)

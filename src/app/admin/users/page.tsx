@@ -412,7 +412,7 @@ export default function AdminUsersPage() {
         <Link href="/" className="back-btn">← 메인으로</Link>
         
         <div className="page-header">
-          <h1 className="page-title">👑 회원 관리</h1>
+          <h1 className="page-title">회원 관리</h1>
         </div>
 
         <div className="users-container">
