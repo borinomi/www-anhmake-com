@@ -35,7 +35,6 @@ export default function DashboardPage() {
   const [sections, setSections] = useState<Section[]>([])
   const [loading, setLoading] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
   
   // Modal state
   const [showModal, setShowModal] = useState(false)
@@ -72,14 +71,11 @@ export default function DashboardPage() {
       const response = await fetch('/api/auth/user')
       if (response.ok) {
         const user = await response.json()
-        setCurrentUser(user)
         setIsAuthorized(user.role === 'admin')
       } else {
-        setCurrentUser(null)
         setIsAuthorized(false)
       }
     } catch {
-      setCurrentUser(null)
       setIsAuthorized(false)
     }
   }, [])
