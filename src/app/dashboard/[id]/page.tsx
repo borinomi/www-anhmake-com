@@ -6,8 +6,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
-import { useAuth } from '@/hooks/useAuth'
-import { useIcons } from '@/hooks/useIcons'
 
 interface User {
   id: string
@@ -47,9 +45,10 @@ export default function DashboardPage() {
   const [sections, setSections] = useState<Section[]>([])
   const [loading, setLoading] = useState(true)
   
-  // 캐싱된 인증 및 아이콘 상태
-  const { user: currentUser, login: handleLogin, logout: handleLogout, isAdmin } = useAuth()
-  const { icons: availableIcons } = useIcons()
+  // 인증 및 아이콘 상태
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
   
   // Modal state
   const [showModal, setShowModal] = useState(false)
@@ -67,6 +66,39 @@ export default function DashboardPage() {
 
   const dashboardId = params.id as string
 
+
+  // 사용자 인증 로딩
+  const loadUser = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/user')
+      if (response.ok) {
+        const user = await response.json()
+        setCurrentUser(user)
+        setIsAdmin(user?.role === 'admin')
+      } else {
+        setCurrentUser(null)
+        setIsAdmin(false)
+      }
+    } catch (error) {
+      console.error('User loading error:', error)
+      setCurrentUser(null)
+      setIsAdmin(false)
+    }
+  }, [])
+
+  // 아이콘 목록 로딩
+  const loadIcons = useCallback(async () => {
+    try {
+      const response = await fetch('/api/icons')
+      if (response.ok) {
+        const icons = await response.json()
+        setAvailableIcons(Array.isArray(icons) ? icons : ['logo.png'])
+      }
+    } catch (error) {
+      console.error('Icons loading error:', error)
+      setAvailableIcons(['logo.png'])
+    }
+  }, [])
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -122,8 +154,10 @@ export default function DashboardPage() {
   }, [dashboardId])
 
   useEffect(() => {
+    loadUser()
+    loadIcons()
     loadDashboard()
-  }, [loadDashboard])
+  }, [loadUser, loadIcons, loadDashboard])
 
   // Modal handlers
   function handleAddCard(sectionId: string) {
@@ -446,8 +480,30 @@ export default function DashboardPage() {
         {dashboardId === '1' ? (
           <Header 
             user={currentUser}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
+            onLogin={async (email: string, password: string) => {
+              try {
+                const response = await fetch('/api/auth/signin', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, password })
+                })
+                if (response.ok) {
+                  await loadUser()
+                }
+                return response.ok
+              } catch {
+                return false
+              }
+            }}
+            onLogout={async () => {
+              try {
+                await fetch('/api/auth/signout', { method: 'POST' })
+                setCurrentUser(null)
+                setIsAdmin(false)
+              } catch (error) {
+                console.error('Logout error:', error)
+              }
+            }}
           />
         ) : (
           <div className="page-header">

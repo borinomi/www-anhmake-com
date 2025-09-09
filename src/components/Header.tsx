@@ -13,7 +13,7 @@ interface User {
 
 interface HeaderProps {
   user: User | null
-  onLogin: () => void
+  onLogin: (email: string, password: string) => Promise<boolean>
   onLogout: () => void
 }
 
@@ -68,7 +68,13 @@ export default function Header({ user, onLogin, onLogout }: HeaderProps) {
               </button>
             </div>
           ) : (
-            <button className="login-btn" onClick={onLogin}>
+            <button className="login-btn" onClick={() => {
+              const email = prompt('이메일:')
+              const password = prompt('비밀번호:')
+              if (email && password) {
+                onLogin(email, password)
+              }
+            }}>
               Login
             </button>
           )}
