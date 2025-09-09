@@ -19,12 +19,12 @@ export async function GET(
         .eq('id', id)
         .single(),
       
-      // 2. 대시보드의 섹션들과 각 섹션의 카드들 한번에
+      // 2. 대시보드의 섹션들과 각 섹션의 카드들 한번에 (명시적 관계 참조)
       supabase
         .from('sections')
         .select(`
           *,
-          cards (*)
+          cards!cards_section_id_fkey (*)
         `)
         .eq('parent_card_id', id)
         .order('section_order', { ascending: true })

@@ -6,12 +6,12 @@ export async function GET() {
   try {
     const supabase = await createClient()
     
-    // 단일 쿼리로 sections와 cards 한번에 가져오기
+    // 단일 쿼리로 sections와 cards 한번에 가져오기 (명시적 관계 참조)
     const { data: sectionsWithCards, error } = await supabase
       .from('sections')
       .select(`
         *,
-        cards (*)
+        cards!cards_section_id_fkey (*)
       `)
       .is('parent_card_id', null) // Root level sections only
       .order('section_order', { ascending: true })
