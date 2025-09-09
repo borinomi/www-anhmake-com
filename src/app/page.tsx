@@ -53,17 +53,30 @@ export default function Home() {
     }
   }
 
-  // Load sections from API
+  // Load sections from API with optimized bulk loading
   const loadSections = async () => {
     try {
-      // Load root-level sections
+      // 1차: 새로운 벌크 API 시도
+      try {
+        const bulkResponse = await fetch('/api/sections-with-cards')
+        if (bulkResponse.ok) {
+          const sectionsWithCards = await bulkResponse.json()
+          setSections(sectionsWithCards)
+          setLoading(false)
+          return // 성공시 조기 리턴
+        }
+      } catch (bulkError) {
+        console.log('Bulk API failed, falling back to individual calls:', bulkError)
+      }
+      
+      // 2차: 기존 방식 폴백 (병렬 로딩)
       const sectionsResponse = await fetch('/api/sections')
       if (!sectionsResponse.ok) {
         throw new Error('Failed to load sections')
       }
       const sectionsData = await sectionsResponse.json()
       
-      // Load cards for each section
+      // 병렬로 카드 데이터 로딩 (기존 Promise.all 유지)
       const sectionsWithCards = await Promise.all(
         sectionsData.map(async (section: { id: string; title: string }) => {
           const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`)

@@ -82,20 +82,37 @@ export default function DashboardPage() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      // Load card data
-      const cardResponse = await fetch(`/api/cards/${dashboardId}`)
+      // 1차: 새로운 벌크 API 시도
+      try {
+        const bulkResponse = await fetch(`/api/dashboard/${dashboardId}/full`)
+        if (bulkResponse.ok) {
+          const { dashboard, sections } = await bulkResponse.json()
+          setPageData(dashboard)
+          setSections(sections)
+          setLoading(false)
+          return // 성공시 조기 리턴
+        }
+      } catch (bulkError) {
+        console.log('Dashboard bulk API failed, falling back:', bulkError)
+      }
+      
+      // 2차: 기존 방식 폴백
+      // 병렬로 대시보드 정보와 섹션 정보 로딩
+      const [cardResponse, sectionsResponse] = await Promise.all([
+        fetch(`/api/cards/${dashboardId}`),
+        fetch(`/api/sections?parent_card_id=${dashboardId}`)
+      ])
+
       if (!cardResponse.ok) {
         throw new Error('Dashboard not found')
       }
       const cardData = await cardResponse.json()
       setPageData(cardData)
 
-      // Load sections for this dashboard
-      const sectionsResponse = await fetch(`/api/sections?parent_card_id=${dashboardId}`)
       if (sectionsResponse.ok) {
         const sectionsData = await sectionsResponse.json()
         
-        // Load cards for each section
+        // 병렬로 섹션별 카드 로딩 (기존 Promise.all 유지)
         const sectionsWithCards = await Promise.all(
           sectionsData.map(async (section: { id: string; title: string }) => {
             const cardsResponse = await fetch(`/api/cards?section_id=${section.id}`)
