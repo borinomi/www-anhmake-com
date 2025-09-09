@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
+import { useModal } from '@/hooks/useModal'
 
 interface User {
   id: string
@@ -50,21 +51,152 @@ export default function DashboardPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
   
-  // Modal state
-  const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState<'addCard' | 'editSection' | 'editCard' | 'addSection' | null>(null)
-  const [modalData, setModalData] = useState<{
-    sectionId?: string
-    title?: string
-    id?: string
-    description?: string
-    icon?: string
-    type?: 'url' | 'dashboard' | 'code'
-    url?: string
-  } | null>(null)
 
 
   const dashboardId = params.id as string
+
+  // Modal 훅 사용
+  const {
+    handleAddCard,
+    handleEditCard,
+    handleAddSection,
+    handleEditSection,
+    Modal
+  } = useModal({
+    availableIcons,
+    isAdmin,
+    onAddCard: async (data) => {
+      // 낙관적 업데이트: 즉시 UI에 카드 추가
+      const tempCard: Card = {
+        id: `temp_${Date.now()}`,
+        title: data.title!,
+        description: data.description!,
+        type: data.type!,
+        url: data.type === 'url' ? data.url : undefined,
+        icon: data.icon!
+      }
+      
+      setSections(prev => prev.map(section => 
+        section.id === data.sectionId 
+          ? { ...section, cards: [...section.cards, tempCard] }
+          : section
+      ))
+      
+      // 백그라운드에서 실제 생성
+      try {
+        const response = await fetch('/api/cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            section_id: data.sectionId,
+            title: data.title,
+            description: data.description,
+            type: data.type,
+            url: data.type === 'url' ? data.url : null,
+            icon: data.icon
+          })
+        })
+        if (response.ok) {
+          loadDashboard()
+        } else {
+          setSections(prev => prev.map(section => 
+            section.id === data.sectionId 
+              ? { ...section, cards: section.cards.filter(c => c.id !== tempCard.id) }
+              : section
+          ))
+          throw new Error('Failed to create card')
+        }
+      } catch (error) {
+        console.error('Error creating card:', error)
+        throw error
+      }
+    },
+    onEditCard: async (data) => {
+      const response = await fetch('/api/cards', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          type: data.type,
+          url: data.type === 'url' ? data.url : null,
+          icon: data.icon
+        })
+      })
+      if (response.ok) {
+        loadDashboard()
+      }
+    },
+    onDeleteCard: async (data) => {
+      // 낙관적 업데이트: 즉시 UI에서 카드 제거
+      const cardToDelete = data.id!
+      const sectionId = data.sectionId!
+      
+      setSections(prev => prev.map(section => 
+        section.id === sectionId 
+          ? { ...section, cards: section.cards.filter(c => c.id !== cardToDelete) }
+          : section
+      ))
+      
+      try {
+        const response = await fetch('/api/cards', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: cardToDelete })
+        })
+        if (response.ok) {
+          loadDashboard()
+        } else {
+          throw new Error('Failed to delete card')
+        }
+      } catch (error) {
+        console.error('Error deleting card:', error)
+        loadDashboard() // 에러시 데이터 복구
+        throw error
+      }
+    },
+    onAddSection: async (data) => {
+      const response = await fetch('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `section_${Date.now()}`,
+          title: data.title,
+          section_order: 1,
+          parent_card_id: dashboardId
+        })
+      })
+      if (response.ok) {
+        loadDashboard()
+      }
+    },
+    onEditSection: async (data) => {
+      const currentSection = sections.find(s => s.id === data.sectionId)
+      const response = await fetch('/api/sections', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.sectionId,
+          title: data.title,
+          section_order: currentSection?.section_order || 1
+        })
+      })
+      if (response.ok) {
+        loadDashboard()
+      }
+    },
+    onDeleteSection: async (data) => {
+      const response = await fetch('/api/sections', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: data.sectionId })
+      })
+      if (response.ok) {
+        loadDashboard()
+      }
+    }
+  })
 
 
   // 사용자 인증 로딩
@@ -159,45 +291,7 @@ export default function DashboardPage() {
     loadDashboard()
   }, [loadUser, loadIcons, loadDashboard])
 
-  // Modal handlers
-  function handleAddCard(sectionId: string) {
-    if (!isAdmin) return
-    setModalType('addCard')
-    setModalData({ sectionId })
-    setShowModal(true)
-  }
-
-  function handleEditSection(sectionId: string, title: string) {
-    if (!isAdmin) return
-    setModalType('editSection')
-    setModalData({ sectionId, title })
-    setShowModal(true)
-  }
-
-  function handleEditCard(cardId: string, sectionId: string) {
-    if (!isAdmin) return
-    const card = sections
-      .find(s => s.id === sectionId)
-      ?.cards.find(c => c.id === cardId)
-    if (card) {
-      setModalType('editCard')
-      setModalData({ ...card, sectionId })
-      setShowModal(true)
-    }
-  }
-
-  function handleAddSection() {
-    if (!isAdmin) return
-    setModalType('addSection')
-    setModalData(null)
-    setShowModal(true)
-  }
-
-  function closeModal() {
-    setShowModal(false)
-    setModalType(null)
-    setModalData(null)
-  }
+  // Modal handlers - 이제 useModal 훅에서 제공
 
   if (loading) {
     return (
@@ -531,7 +625,7 @@ export default function DashboardPage() {
               isAuthorized={isAdmin}
               onAddCard={handleAddCard}
               onEditSection={handleEditSection}
-              onEditCard={handleEditCard}
+              onEditCard={(cardId, sectionId) => handleEditCard(cardId, sectionId, sections)}
             />
           ))}
         </div>
@@ -560,321 +654,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Modal */}
-        {showModal && (
-          <div className="modal" style={{ display: 'block' }}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3 className="modal-title">
-                  {modalType === 'addSection' && '섹션 추가'}
-                  {modalType === 'editSection' && '섹션 수정'}
-                  {modalType === 'addCard' && '카드 추가'}
-                  {modalType === 'editCard' && '카드 수정'}
-                </h3>
-                <span className="close" onClick={closeModal}>&times;</span>
-              </div>
-              <form onSubmit={async (e) => {
-                e.preventDefault()
-                const formData = new FormData(e.target as HTMLFormElement)
-                
-                try {
-                  if (modalType === 'addSection') {
-                    const title = formData.get('sectionTitle') as string
-                    const response = await fetch('/api/sections', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        id: `section_${Date.now()}`,
-                        title,
-                        section_order: 1,
-                        parent_card_id: dashboardId
-                      })
-                    })
-                    if (response.ok) {
-                      loadDashboard()
-                      closeModal()
-                    }
-                  } else if (modalType === 'editSection') {
-                    const title = formData.get('sectionTitle') as string
-                    // 현재 섹션 정보를 가져와서 section_order 보존
-                    const currentSection = sections.find(s => s.id === modalData?.sectionId)
-                    const response = await fetch('/api/sections', {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        id: modalData?.sectionId,
-                        title,
-                        section_order: currentSection?.section_order || 1
-                      })
-                    })
-                    if (response.ok) {
-                      loadDashboard()
-                      closeModal()
-                    }
-                  } else if (modalType === 'addCard') {
-                    const title = formData.get('cardTitle') as string
-                    const description = formData.get('cardDescription') as string
-                    const type = formData.get('cardType') as string
-                    const url = formData.get('cardUrl') as string
-                    const iconSelect = formData.get('cardIcon') as string
-                    const iconUrl = formData.get('cardIconUrl') as string
-                    
-                    // 웹 링크 선택 시 URL 사용, 아니면 기본 아이콘 사용
-                    const finalIcon = iconSelect === 'web-link' ? iconUrl : iconSelect
-                    
-                    // 낙관적 업데이트: 즉시 UI에 카드 추가
-                    const tempCard: Card = {
-                      id: `temp_${Date.now()}`,
-                      title,
-                      description,
-                      type: type as 'url' | 'dashboard' | 'code',
-                      url: type === 'url' ? url : undefined,
-                      icon: finalIcon
-                    }
-                    
-                    setSections(prev => prev.map(section => 
-                      section.id === modalData?.sectionId 
-                        ? { ...section, cards: [...section.cards, tempCard] }
-                        : section
-                    ))
-                    closeModal()
-                    
-                    // 백그라운드에서 실제 생성
-                    const response = await fetch('/api/cards', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        section_id: modalData?.sectionId,
-                        title,
-                        description,
-                        type,
-                        url: type === 'url' ? url : null,
-                        icon: finalIcon
-                      })
-                    })
-                    if (response.ok) {
-                      // 성공시 실제 데이터로 교체
-                      loadDashboard()
-                    } else {
-                      // 실패시 임시 카드 제거
-                      setSections(prev => prev.map(section => 
-                        section.id === modalData?.sectionId 
-                          ? { ...section, cards: section.cards.filter(c => c.id !== tempCard.id) }
-                          : section
-                      ))
-                      alert('카드 추가에 실패했습니다.')
-                    }
-                  } else if (modalType === 'editCard') {
-                    const title = formData.get('cardTitle') as string
-                    const description = formData.get('cardDescription') as string
-                    const type = formData.get('cardType') as string
-                    const url = formData.get('cardUrl') as string
-                    const iconSelect = formData.get('cardIcon') as string
-                    const iconUrl = formData.get('cardIconUrl') as string
-                    
-                    // 웹 링크 선택 시 URL 사용, 아니면 기본 아이콘 사용
-                    const finalIcon = iconSelect === 'web-link' ? iconUrl : iconSelect
-                    
-                    const response = await fetch('/api/cards', {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        id: modalData?.id,
-                        title,
-                        description,
-                        type,
-                        url: type === 'url' ? url : null,
-                        icon: finalIcon
-                      })
-                    })
-                    if (response.ok) {
-                      loadDashboard()
-                      closeModal()
-                    }
-                  }
-                } catch (error) {
-                  console.error('Error:', error)
-                  alert('저장에 실패했습니다.')
-                }
-              }}>
-                <div className="form-fields">
-                  {(modalType === 'addSection' || modalType === 'editSection') && (
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="sectionTitle">섹션 제목</label>
-                      <input 
-                        type="text" 
-                        id="sectionTitle" 
-                        name="sectionTitle"
-                        className="form-input"
-                        defaultValue={modalData?.title || ''} 
-                        required 
-                      />
-                    </div>
-                  )}
-                  {(modalType === 'addCard' || modalType === 'editCard') && (
-                    <>
-                      <div className="form-group">
-                        <label className="form-label" htmlFor="cardType">카드 타입</label>
-                        <select id="cardType" name="cardType" className="form-select" defaultValue={modalData?.type || 'url'}>
-                          <option value="url">URL - 외부 링크</option>
-                          <option value="dashboard">Dashboard - 하위 카드 시스템</option>
-                          <option value="code">Code - 코드 스니펫 보드</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label" htmlFor="cardTitle">제목</label>
-                        <input 
-                          type="text" 
-                          id="cardTitle" 
-                          name="cardTitle"
-                          className="form-input"
-                          placeholder="카드 제목"
-                          defaultValue={modalData?.title || ''} 
-                          required 
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label" htmlFor="cardDescription">설명</label>
-                        <textarea 
-                          id="cardDescription" 
-                          name="cardDescription"
-                          className="form-textarea"
-                          placeholder="카드 설명"
-                          defaultValue={modalData?.description || ''}
-                          required
-                        ></textarea>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label" htmlFor="cardIcon">아이콘 선택</label>
-                        <select 
-                          id="cardIcon" 
-                          name="cardIcon" 
-                          className="form-select" 
-                          defaultValue={modalData?.icon || 'logo.png'}
-                          onChange={(e) => {
-                            const urlField = document.getElementById('iconUrlField') as HTMLDivElement
-                            if (e.target.value === 'web-link') {
-                              urlField.style.display = 'block'
-                            } else {
-                              urlField.style.display = 'none'
-                            }
-                          }}
-                        >
-                          {availableIcons.map(iconName => (
-                            <option key={iconName} value={iconName}>
-                              {iconName === 'logo.png' ? '기본 아이콘 (logo.png)' : iconName.replace('logo_', '').replace('logo-', '').replace('.png', '')}
-                            </option>
-                          ))}
-                          <option value="web-link">🌐 웹 링크로 아이콘 사용</option>
-                        </select>
-                      </div>
-                      <div 
-                        className="form-group" 
-                        id="iconUrlField" 
-                        style={{ display: (modalData?.icon && modalData.icon.startsWith('http')) ? 'block' : 'none' }}
-                      >
-                        <label className="form-label" htmlFor="cardIconUrl">아이콘 이미지 URL</label>
-                        <input 
-                          type="url" 
-                          id="cardIconUrl" 
-                          name="cardIconUrl"
-                          className="form-input"
-                          placeholder="https://example.com/icon.png"
-                          defaultValue={modalData?.icon && modalData.icon.startsWith('http') ? modalData.icon : ''} 
-                        />
-                      </div>
-                      <div className="form-group" id="urlFields">
-                        <label className="form-label" htmlFor="cardUrl">URL</label>
-                        <input 
-                          type="url" 
-                          id="cardUrl" 
-                          name="cardUrl"
-                          className="form-input"
-                          placeholder="https://example.com"
-                          defaultValue={modalData?.url || ''} 
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <button 
-                    type="button" 
-                    id="deleteCardBtn" 
-                    className="btn-secondary" 
-                    style={{ background: '#dc2626', display: (modalType === 'editCard' || modalType === 'editSection') ? 'block' : 'none' }}
-                    onClick={async () => {
-                      if (modalType === 'editCard' && modalData?.id && modalData?.sectionId) {
-                        if (confirm('이 카드를 삭제하시겠습니까?')) {
-                          // 낙관적 업데이트: 즉시 UI에서 카드 제거
-                          const cardToDelete = modalData.id
-                          const sectionId = modalData.sectionId
-                          
-                          setSections(prev => prev.map(section => 
-                            section.id === sectionId 
-                              ? { ...section, cards: section.cards.filter(c => c.id !== cardToDelete) }
-                              : section
-                          ))
-                          closeModal()
-                          
-                          try {
-                            const response = await fetch('/api/cards', {
-                              method: 'DELETE',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ id: cardToDelete })
-                            })
-                            if (response.ok) {
-                              // 성공시 실제 데이터 다시 로드
-                              loadDashboard()
-                            } else {
-                              alert('카드 삭제에 실패했습니다.')
-                              // 실패시 데이터 복구
-                              loadDashboard()
-                            }
-                          } catch (error) {
-                            console.error('Error:', error)
-                            alert('삭제 중 오류가 발생했습니다.')
-                            // 에러시 데이터 복구
-                            loadDashboard()
-                          }
-                        }
-                      } else if (modalType === 'editSection' && modalData?.sectionId) {
-                        if (confirm('이 섹션을 삭제하시겠습니까?')) {
-                          try {
-                            const response = await fetch('/api/sections', {
-                              method: 'DELETE',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ id: modalData.sectionId })
-                            })
-                            if (response.ok) {
-                              closeModal()
-                              loadDashboard()
-                            } else {
-                              alert('섹션 삭제에 실패했습니다.')
-                            }
-                          } catch (error) {
-                            console.error('Error:', error)
-                            alert('삭제 중 오류가 발생했습니다.')
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    삭제
-                  </button>
-                  <div>
-                    <button type="button" className="btn-secondary" onClick={closeModal}>
-                      취소
-                    </button>
-                    <button type="submit" className="btn-primary">
-                      저장
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        {Modal}
       </div>
     </>
   )
