@@ -9,6 +9,8 @@ interface User {
   email: string
   name?: string
   avatar_url?: string
+  role?: string
+  status?: string
 }
 
 interface Card {
@@ -134,23 +136,26 @@ export default function Home() {
     }
   }
 
+  // Check if user is admin
+  const isAdmin = currentUser?.role === 'admin'
+
   // Modal handlers
   const handleAddCard = (sectionId: string) => {
-    if (!currentUser) return
+    if (!isAdmin) return
     setModalType('addCard')
     setModalData({ sectionId })
     setShowModal(true)
   }
 
   const handleEditSection = (sectionId: string, title: string) => {
-    if (!currentUser) return
+    if (!isAdmin) return
     setModalType('editSection')
     setModalData({ sectionId, title })
     setShowModal(true)
   }
 
   const handleEditCard = (cardId: string, sectionId: string) => {
-    if (!currentUser) return
+    if (!isAdmin) return
     const card = sections
       .find(s => s.id === sectionId)
       ?.cards.find(c => c.id === cardId)
@@ -162,7 +167,7 @@ export default function Home() {
   }
 
   const handleAddSection = () => {
-    if (!currentUser) return
+    if (!isAdmin) return
     setModalType('addSection')
     setModalData(null)
     setShowModal(true)
@@ -209,7 +214,7 @@ export default function Home() {
           <Section
             key={section.id}
             section={section}
-            isAuthorized={!!currentUser}
+            isAuthorized={isAdmin}
             onAddCard={handleAddCard}
             onEditSection={handleEditSection}
             onEditCard={handleEditCard}
@@ -217,8 +222,8 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Add Section Button (only for authorized users) */}
-      {currentUser && (
+      {/* Add Section Button (only for admin users) */}
+      {isAdmin && (
         <div id="addSectionContainer" style={{ marginBottom: '2rem' }}>
           <button 
             className="btn-section-action" 

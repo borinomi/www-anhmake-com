@@ -7,6 +7,8 @@ interface User {
   email: string
   name?: string
   avatar_url?: string
+  role?: string
+  status?: string
 }
 
 interface HeaderProps {
@@ -45,7 +47,14 @@ export default function Header({ user, onLogin, onLogout }: HeaderProps) {
                   className="user-avatar"
                 />
               )}
-              <span>{user.name || user.email}</span>
+              <span>
+                {user.status === 'pending' 
+                  ? '가입 승인 대기' 
+                  : user.role === 'admin' 
+                    ? `${user.name || user.email} (admin)` 
+                    : user.name || user.email
+                }
+              </span>
               <button className="logout-btn" onClick={onLogout}>
                 로그아웃
               </button>

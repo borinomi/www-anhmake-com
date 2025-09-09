@@ -27,6 +27,7 @@ export default function CodePage() {
   const [codeSnippets, setCodeSnippets] = useState<CodeSnippet[]>([])
   const [loading, setLoading] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState({ title: '', content: '' })
@@ -36,8 +37,16 @@ export default function CodePage() {
   const checkAuth = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/user')
-      setIsAuthorized(response.ok)
+      if (response.ok) {
+        const user = await response.json()
+        setCurrentUser(user)
+        setIsAuthorized(user.role === 'admin')
+      } else {
+        setCurrentUser(null)
+        setIsAuthorized(false)
+      }
     } catch {
+      setCurrentUser(null)
       setIsAuthorized(false)
     }
   }, [])
