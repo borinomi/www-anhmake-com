@@ -38,6 +38,14 @@ export default function Header({ user, onLogin, onLogout }: HeaderProps) {
         <div id="authSection">
           {user ? (
             <div className="user-info">
+              {user.role === 'admin' && (
+                <button 
+                  className="admin-btn" 
+                  onClick={() => window.location.href = '/admin/users'}
+                >
+                  회원관리
+                </button>
+              )}
               {user.avatar_url && (
                 <Image 
                   src={user.avatar_url} 
