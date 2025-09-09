@@ -4,11 +4,11 @@ export const runtime = 'nodejs'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
-    const { id } = params
+    const { id } = await params
 
     // 병렬로 대시보드 정보와 섹션+카드 정보 가져오기
     const [dashboardResponse, sectionsResponse] = await Promise.all([

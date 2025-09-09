@@ -28,14 +28,7 @@ interface Section {
 }
 
 // 전역 캐시 저장소
-const globalCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
-
-// 캐시 헬퍼 함수들
-const getCacheKey = (key: string, params?: Record<string, any>) => {
-  if (!params) return key
-  const paramStr = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&')
-  return `${key}?${paramStr}`
-}
+const globalCache = new Map<string, { data: unknown; timestamp: number; ttl: number }>()
 
 const isExpired = (timestamp: number, ttl: number) => {
   return Date.now() - timestamp > ttl
@@ -47,10 +40,10 @@ const getCachedData = <T>(cacheKey: string): T | null => {
     globalCache.delete(cacheKey)
     return null
   }
-  return cached.data
+  return cached.data as T
 }
 
-const setCachedData = (cacheKey: string, data: any, ttl: number = 300000) => { // 기본 5분
+const setCachedData = (cacheKey: string, data: unknown, ttl: number = 300000) => { // 기본 5분
   globalCache.set(cacheKey, {
     data,
     timestamp: Date.now(),
@@ -152,7 +145,7 @@ export const useSectionsWithCards = () => {
           setCachedData(cacheKey, sectionsWithCards, 300000) // 5분 캐시
           return sectionsWithCards
         }
-      } catch (bulkError) {
+      } catch {
         console.log('Bulk API failed, falling back to individual calls')
       }
       
