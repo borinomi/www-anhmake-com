@@ -42,7 +42,7 @@ export default function Card({ card, isAuthorized, onClick, onEdit }: CardProps)
       <div className="tool-content">
         <div className="tool-icon">
           <Image 
-            src={`/icon/${card.icon}`}
+            src={card.icon.startsWith('http') ? card.icon : `/icon/${card.icon}`}
             alt={card.title}
             width={60}
             height={60}

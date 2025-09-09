@@ -421,7 +421,9 @@ export default function DashboardPage() {
         
         <div className="page-header">
           <Image 
-            src={pageData.icon ? `/icon/${pageData.icon}` : '/logo.png'} 
+            src={pageData.icon ? 
+              (pageData.icon.startsWith('http') ? pageData.icon : `/icon/${pageData.icon}`) 
+              : '/logo.png'} 
             alt="Dashboard" 
             width={60}
             height={60}
@@ -518,7 +520,11 @@ export default function DashboardPage() {
                     const description = formData.get('cardDescription') as string
                     const type = formData.get('cardType') as string
                     const url = formData.get('cardUrl') as string
-                    const icon = formData.get('cardIcon') as string
+                    const iconSelect = formData.get('cardIcon') as string
+                    const iconUrl = formData.get('cardIconUrl') as string
+                    
+                    // 웹 링크 선택 시 URL 사용, 아니면 기본 아이콘 사용
+                    const finalIcon = iconSelect === 'web-link' ? iconUrl : iconSelect
                     
                     const response = await fetch('/api/cards', {
                       method: 'POST',
@@ -529,7 +535,7 @@ export default function DashboardPage() {
                         description,
                         type,
                         url: type === 'url' ? url : null,
-                        icon
+                        icon: finalIcon
                       })
                     })
                     if (response.ok) {
@@ -541,7 +547,11 @@ export default function DashboardPage() {
                     const description = formData.get('cardDescription') as string
                     const type = formData.get('cardType') as string
                     const url = formData.get('cardUrl') as string
-                    const icon = formData.get('cardIcon') as string
+                    const iconSelect = formData.get('cardIcon') as string
+                    const iconUrl = formData.get('cardIconUrl') as string
+                    
+                    // 웹 링크 선택 시 URL 사용, 아니면 기본 아이콘 사용
+                    const finalIcon = iconSelect === 'web-link' ? iconUrl : iconSelect
                     
                     const response = await fetch('/api/cards', {
                       method: 'PUT',
@@ -552,7 +562,7 @@ export default function DashboardPage() {
                         description,
                         type,
                         url: type === 'url' ? url : null,
-                        icon
+                        icon: finalIcon
                       })
                     })
                     if (response.ok) {
@@ -614,13 +624,42 @@ export default function DashboardPage() {
                       </div>
                       <div className="form-group">
                         <label className="form-label" htmlFor="cardIcon">아이콘 선택</label>
-                        <select id="cardIcon" name="cardIcon" className="form-select" defaultValue={modalData?.icon || 'logo.png'}>
+                        <select 
+                          id="cardIcon" 
+                          name="cardIcon" 
+                          className="form-select" 
+                          defaultValue={modalData?.icon || 'logo.png'}
+                          onChange={(e) => {
+                            const urlField = document.getElementById('iconUrlField') as HTMLDivElement
+                            if (e.target.value === 'web-link') {
+                              urlField.style.display = 'block'
+                            } else {
+                              urlField.style.display = 'none'
+                            }
+                          }}
+                        >
                           {availableIcons.map(iconName => (
                             <option key={iconName} value={iconName}>
                               {iconName === 'logo.png' ? '기본 아이콘 (logo.png)' : iconName.replace('logo_', '').replace('logo-', '').replace('.png', '')}
                             </option>
                           ))}
+                          <option value="web-link">🌐 웹 링크로 아이콘 사용</option>
                         </select>
+                      </div>
+                      <div 
+                        className="form-group" 
+                        id="iconUrlField" 
+                        style={{ display: (modalData?.icon && modalData.icon.startsWith('http')) ? 'block' : 'none' }}
+                      >
+                        <label className="form-label" htmlFor="cardIconUrl">아이콘 이미지 URL</label>
+                        <input 
+                          type="url" 
+                          id="cardIconUrl" 
+                          name="cardIconUrl"
+                          className="form-input"
+                          placeholder="https://example.com/icon.png"
+                          defaultValue={modalData?.icon && modalData.icon.startsWith('http') ? modalData.icon : ''} 
+                        />
                       </div>
                       <div className="form-group" id="urlFields">
                         <label className="form-label" htmlFor="cardUrl">URL</label>
