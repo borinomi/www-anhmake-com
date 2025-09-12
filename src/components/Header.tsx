@@ -30,8 +30,8 @@ export default function Header({ user, onLogin, onLogout }: HeaderProps) {
         />
         <div className="header-text">
           <div className="header-line">Anh Kim</div>
-          <div className="header-line">AI & Automation builder</div>
-          <div className="header-line">Drawing a Map of AI & Automation</div>
+          <div className="header-line">Drawing a Map of workflows</div>
+          <div className="header-line">직업능력개발훈련교사 교직훈련과정</div>
         </div>
       </div>
       <div className="header-auth">
