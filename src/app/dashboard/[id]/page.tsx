@@ -571,20 +571,8 @@ export default function DashboardPage() {
         {dashboardId === '1' ? (
           <Header 
             user={currentUser}
-            onLogin={async (email: string, password: string) => {
-              try {
-                const response = await fetch('/api/auth/signin', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email, password })
-                })
-                if (response.ok) {
-                  await loadUser()
-                }
-                return response.ok
-              } catch {
-                return false
-              }
+            onLogin={() => {
+              window.location.href = '/api/auth/login'
             }}
             onLogout={async () => {
               try {
