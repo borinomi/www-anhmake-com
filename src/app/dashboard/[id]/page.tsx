@@ -588,7 +588,7 @@ export default function DashboardPage() {
             }}
             onLogout={async () => {
               try {
-                await fetch('/api/auth/signout', { method: 'POST' })
+                await fetch('/api/auth/logout', { method: 'POST' })
                 setCurrentUser(null)
                 setIsAdmin(false)
               } catch (error) {
