@@ -463,9 +463,9 @@ export default function DashboardPage() {
           backdrop-filter: blur(5px);
           overflow-y: auto;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          padding: 2rem 1rem;
+          padding: 3rem 1rem;
         }
 
         .modal-content {
