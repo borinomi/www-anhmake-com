@@ -25,6 +25,7 @@ interface Card {
   icon: string
   type: 'url' | 'dashboard' | 'code'
   url?: string
+  visibility?: 'admin' | 'user' | 'all'
 }
 
 interface Section {

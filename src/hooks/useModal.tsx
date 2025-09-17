@@ -9,6 +9,7 @@ interface Card {
   icon: string
   type: 'url' | 'dashboard' | 'code'
   url?: string
+  visibility?: 'admin' | 'user' | 'all'
 }
 
 interface Section {
@@ -26,6 +27,7 @@ interface ModalData {
   icon?: string
   type?: 'url' | 'dashboard' | 'code'
   url?: string
+  visibility?: 'admin' | 'user' | 'all'
 }
 
 type ModalType = 'addCard' | 'editSection' | 'editCard' | 'addSection'
@@ -97,7 +99,8 @@ export const useModal = (options: UseModalOptions = {}) => {
           url: formData.get('cardUrl') as string,
           icon: formData.get('cardIcon') === 'web-link' 
             ? formData.get('cardIconUrl') as string 
-            : formData.get('cardIcon') as string
+            : formData.get('cardIcon') as string,
+          visibility: formData.get('visibility') as 'admin' | 'user' | 'all'
         }
         await options.onAddCard(cardData)
       } else if (modalType === 'editCard' && options.onEditCard) {
@@ -109,7 +112,8 @@ export const useModal = (options: UseModalOptions = {}) => {
           url: formData.get('cardUrl') as string,
           icon: formData.get('cardIcon') === 'web-link' 
             ? formData.get('cardIconUrl') as string 
-            : formData.get('cardIcon') as string
+            : formData.get('cardIcon') as string,
+          visibility: formData.get('visibility') as 'admin' | 'user' | 'all'
         }
         await options.onEditCard(cardData)
       } else if (modalType === 'addSection' && options.onAddSection) {
@@ -256,6 +260,41 @@ export const useModal = (options: UseModalOptions = {}) => {
                     placeholder="https://example.com"
                     defaultValue={modalData?.url || ''} 
                   />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">공개 설정</label>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="visibility" 
+                        value="all"
+                        defaultChecked={!modalData?.visibility || modalData?.visibility === 'all'}
+                        style={{ marginRight: '0.5rem' }}
+                      />
+                      All
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="visibility" 
+                        value="user"
+                        defaultChecked={modalData?.visibility === 'user'}
+                        style={{ marginRight: '0.5rem' }}
+                      />
+                      User
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="visibility" 
+                        value="admin"
+                        defaultChecked={modalData?.visibility === 'admin'}
+                        style={{ marginRight: '0.5rem' }}
+                      />
+                      Admin
+                    </label>
+                  </div>
                 </div>
               </>
             )}

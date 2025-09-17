@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { section_id, title, description, icon, type, url, created_at } = body
+    const { section_id, title, description, icon, type, url, created_at, visibility } = body
 
     // Basic validation
     if (!title || !description) {
@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
       type: type || 'dashboard',
       url: type === 'url' ? url : null,
       created_at: created_at || new Date().toISOString(),
+      visibility: visibility || 'all',
     }
 
     const { data, error } = await supabase
@@ -114,7 +115,7 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { id, title, description, icon, type, url } = body
+    const { id, title, description, icon, type, url, visibility } = body
     
     if (!id || !title) {
       return new Response(JSON.stringify({ error: 'id and title are required' }), {
@@ -128,7 +129,8 @@ export async function PUT(request: NextRequest) {
       description,
       icon: icon || 'logo.png',
       type: type || 'dashboard',
-      url: type === 'url' ? url : null
+      url: type === 'url' ? url : null,
+      visibility: visibility || 'all'
     }
     
     const { data, error } = await supabase

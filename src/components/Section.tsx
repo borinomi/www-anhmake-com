@@ -10,6 +10,7 @@ interface Card {
   icon: string
   type: 'url' | 'dashboard' | 'code'
   url?: string
+  visibility?: 'admin' | 'user' | 'all'
 }
 
 interface Section {
@@ -49,6 +50,22 @@ export default function Section({
     }
   }
 
+  // Filter cards based on visibility and user role
+  const filteredCards = section.cards.filter(card => {
+    if (!card.visibility) return true; // 기본값 all
+    
+    switch(card.visibility) {
+      case 'admin':
+        return isAuthorized; // admin만 표시
+      case 'user':  
+        return isAuthorized; // admin만 표시 (일반 사용자에게는 숨김)
+      case 'all':
+        return true; // 모든 사용자에게 표시
+      default:
+        return true;
+    }
+  });
+
   return (
     <div className="section" data-section-id={section.id}>
       <div className="section-header">
@@ -73,7 +90,7 @@ export default function Section({
         )}
       </div>
       <div className="cards-grid">
-        {section.cards.map(card => (
+        {filteredCards.map(card => (
           <Card
             key={card.id}
             card={card}
