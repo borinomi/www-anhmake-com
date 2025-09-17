@@ -75,7 +75,8 @@ export default function DashboardPage() {
         description: data.description!,
         type: data.type!,
         url: data.type === 'url' ? data.url : undefined,
-        icon: data.icon!
+        icon: data.icon!,
+        visibility: data.visibility
       }
       
       setSections(prev => prev.map(section => 
@@ -95,7 +96,8 @@ export default function DashboardPage() {
             description: data.description,
             type: data.type,
             url: data.type === 'url' ? data.url : null,
-            icon: data.icon
+            icon: data.icon,
+            visibility: data.visibility
           })
         })
         if (response.ok) {
@@ -123,7 +125,8 @@ export default function DashboardPage() {
           description: data.description,
           type: data.type,
           url: data.type === 'url' ? data.url : null,
-          icon: data.icon
+          icon: data.icon,
+          visibility: data.visibility
         })
       })
       if (response.ok) {
