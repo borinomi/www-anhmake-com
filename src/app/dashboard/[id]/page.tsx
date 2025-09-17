@@ -463,7 +463,7 @@ export default function DashboardPage() {
           backdrop-filter: blur(5px);
           overflow-y: auto;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           padding: 2rem 1rem;
         }

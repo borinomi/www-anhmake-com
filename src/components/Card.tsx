@@ -31,6 +31,26 @@ export default function Card({ card, isAuthorized, onClick, onEdit }: CardProps)
 
   return (
     <div className="tool-card" onClick={onClick}>
+      {isAuthorized && card.visibility && card.visibility !== 'all' && (
+        <div 
+          className="card-visibility"
+          title={`${card.visibility} 전용`}
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            left: '1rem',
+            background: card.visibility === 'admin' ? '#dc2626' : '#f59e0b',
+            color: 'white',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '0.25rem',
+            fontSize: '0.75rem',
+            fontWeight: '500',
+            textTransform: 'uppercase'
+          }}
+        >
+          {card.visibility}
+        </div>
+      )}
       {isAuthorized && (
         <div 
           className="card-menu" 
