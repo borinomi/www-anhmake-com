@@ -461,25 +461,32 @@ export default function DashboardPage() {
           height: 100%;
           background: rgba(0, 0, 0, 0.5);
           backdrop-filter: blur(5px);
+          overflow-y: auto;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding: 2rem 1rem;
         }
 
         .modal-content {
           background: white;
-          margin: 5% auto;
-          padding: 2rem;
+          margin: 0;
+          padding: 1.5rem;
           border-radius: 1rem;
-          width: 90%;
+          width: 100%;
           max-width: 500px;
+          max-height: calc(100vh - 4rem);
           position: relative;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          overflow-y: auto;
         }
 
         .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.75rem;
           border-bottom: 1px solid #e2e8f0;
         }
 
@@ -502,7 +509,7 @@ export default function DashboardPage() {
         }
 
         .form-group {
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
         }
 
         .form-label {
