@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const params = useParams()
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [sections, setSections] = useState<Section[]>([])
+  const [allSections, setAllSections] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   
   // 인증 및 아이콘 상태
@@ -67,7 +68,7 @@ export default function DashboardPage() {
     Modal
   } = useModal({
     availableIcons,
-    availableSections: sections,
+    availableSections: allSections,
     isAdmin,
     onAddCard: async (data) => {
       // 낙관적 업데이트: 즉시 UI에 카드 추가
@@ -297,6 +298,7 @@ export default function DashboardPage() {
     loadUser()
     loadIcons()
     loadDashboard()
+    fetch('/api/sections-with-cards').then(r => r.json()).then(data => setAllSections(data))
   }, [loadUser, loadIcons, loadDashboard])
 
   // 브라우저 탭 타이틀 업데이트

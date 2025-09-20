@@ -190,7 +190,7 @@ export const useModal = (options: UseModalOptions = {}) => {
                     <select id="cardSection" name="cardSection" className="form-select" defaultValue={modalData?.sectionId || ''}>
                       {options.availableSections?.map(section => (
                         <option key={section.id} value={section.id}>
-                          {section.title}
+                          {section.dashboard_title} > {section.title}
                         </option>
                       ))}
                     </select>
