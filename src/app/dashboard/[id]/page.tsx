@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const params = useParams()
   const [pageData, setPageData] = useState<PageData | null>(null)
   const [sections, setSections] = useState<Section[]>([])
-  const [allSections, setAllSections] = useState<any[]>([])
+  const [allSections, setAllSections] = useState<Array<{id: string, title: string, dashboard_title: string}>>([])
   const [loading, setLoading] = useState(true)
   
   // 인증 및 아이콘 상태
