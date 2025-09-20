@@ -67,6 +67,7 @@ export default function DashboardPage() {
     Modal
   } = useModal({
     availableIcons,
+    availableSections: sections,
     isAdmin,
     onAddCard: async (data) => {
       // 낙관적 업데이트: 즉시 UI에 카드 추가
@@ -127,7 +128,8 @@ export default function DashboardPage() {
           type: data.type,
           url: data.type === 'url' ? data.url : null,
           icon: data.icon,
-          visibility: data.visibility
+          visibility: data.visibility,
+          newSectionId: data.newSectionId
         })
       })
       if (response.ok) {

@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { id, title, description, icon, type, url, visibility } = body
+    const { id, title, description, icon, type, url, visibility, newSectionId } = body
     
     if (!id || !title) {
       return new Response(JSON.stringify({ error: 'id and title are required' }), {
@@ -130,7 +130,8 @@ export async function PUT(request: NextRequest) {
       icon: icon || 'logo.png',
       type: type || 'dashboard',
       url: type === 'url' ? url : null,
-      visibility: visibility || 'all'
+      visibility: visibility || 'all',
+      ...(newSectionId && { section_id: newSectionId })
     }
     
     const { data, error } = await supabase

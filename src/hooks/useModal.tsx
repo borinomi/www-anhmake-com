@@ -21,6 +21,7 @@ interface Section {
 
 interface ModalData {
   sectionId?: string
+  newSectionId?: string
   title?: string
   id?: string
   description?: string
@@ -40,6 +41,7 @@ interface UseModalOptions {
   onEditSection?: (data: ModalData) => Promise<void>
   onDeleteSection?: (data: ModalData) => Promise<void>
   availableIcons?: string[]
+  availableSections?: Section[]
   isAdmin?: boolean
 }
 
@@ -106,6 +108,8 @@ export const useModal = (options: UseModalOptions = {}) => {
       } else if (modalType === 'editCard' && options.onEditCard) {
         const cardData = {
           id: modalData?.id,
+          sectionId: modalData?.sectionId,
+          newSectionId: formData.get('cardSection') as string,
           title: formData.get('cardTitle') as string,
           description: formData.get('cardDescription') as string,
           type: formData.get('cardType') as 'url' | 'dashboard' | 'code',
@@ -180,6 +184,18 @@ export const useModal = (options: UseModalOptions = {}) => {
             )}
             {(modalType === 'addCard' || modalType === 'editCard') && (
               <>
+                {modalType === 'editCard' && (
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="cardSection">섹션</label>
+                    <select id="cardSection" name="cardSection" className="form-select" defaultValue={modalData?.sectionId || ''}>
+                      {options.availableSections?.map(section => (
+                        <option key={section.id} value={section.id}>
+                          {section.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="form-group">
                   <label className="form-label" htmlFor="cardType">카드 타입</label>
                   <select id="cardType" name="cardType" className="form-select" defaultValue={modalData?.type || 'url'}>
