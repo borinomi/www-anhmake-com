@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import Head from 'next/head'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
 import SkeletonLoader from '@/components/SkeletonLoader'
@@ -319,6 +320,11 @@ export default function DashboardPage() {
 
   return (
     <>
+      <Head>
+        <title>{pageData ? `${pageData.title} - anhmake.com` : 'anhmake.com'}</title>
+        <meta property="og:title" content={pageData ? `${pageData.title} - anhmake.com` : 'anhmake.com'} />
+        <meta property="og:description" content={pageData?.description || 'Dashboard page'} />
+      </Head>
       <style jsx global>{`
         * {
           margin: 0;
