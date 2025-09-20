@@ -296,6 +296,13 @@ export default function DashboardPage() {
     loadDashboard()
   }, [loadUser, loadIcons, loadDashboard])
 
+  // 브라우저 탭 타이틀 업데이트
+  useEffect(() => {
+    if (pageData?.title) {
+      document.title = `${pageData.title} - anhmake.com`
+    }
+  }, [pageData?.title])
+
   // Modal handlers - 이제 useModal 훅에서 제공
 
   if (loading) {
