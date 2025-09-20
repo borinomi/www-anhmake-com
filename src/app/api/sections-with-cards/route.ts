@@ -6,14 +6,15 @@ export async function GET() {
   try {
     const supabase = await createClient()
     
-    // 단일 쿼리로 sections와 cards 한번에 가져오기 (명시적 관계 참조)
+    // 모든 섹션과 연결된 대시보드 정보 가져오기
     const { data: sectionsWithCards, error } = await supabase
       .from('sections')
       .select(`
         *,
-        cards!cards_section_id_fkey (*)
+        cards!cards_section_id_fkey (*),
+        dashboard:cards!sections_parent_card_id_fkey (id, title)
       `)
-      .is('parent_card_id', null) // Root level sections only
+      .not('parent_card_id', 'is', null)
       .order('section_order', { ascending: true })
       .order('created_at', { foreignTable: 'cards', ascending: true })
 
@@ -25,15 +26,13 @@ export async function GET() {
       })
     }
 
-    // 섹션 순서대로 정렬 (section_order가 null인 경우 created_at으로)
-    const sortedSections = sectionsWithCards?.sort((a, b) => {
-      if (a.section_order && b.section_order) {
-        return a.section_order - b.section_order
-      }
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    }) || []
+    // dashboard_title 필드 추가
+    const sectionsWithDashboard = sectionsWithCards?.map(section => ({
+      ...section,
+      dashboard_title: section.dashboard?.title || 'Unknown Dashboard'
+    })) || []
 
-    return new Response(JSON.stringify(sortedSections), {
+    return new Response(JSON.stringify(sectionsWithDashboard), {
       status: 200,
       headers: { 
         'Content-Type': 'application/json'
