@@ -41,7 +41,7 @@ interface UseModalOptions {
   onEditSection?: (data: ModalData) => Promise<void>
   onDeleteSection?: (data: ModalData) => Promise<void>
   availableIcons?: string[]
-  availableSections?: Section[]
+  availableSections?: Array<{id: string, title: string, dashboard_title: string}>
   isAdmin?: boolean
 }
 
