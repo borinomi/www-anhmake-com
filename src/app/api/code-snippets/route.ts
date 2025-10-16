@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       .from('code_snippets')
       .select('*')
       .eq('card_id', card_id)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
 
     if (error) {
       console.error('Database error:', error)
