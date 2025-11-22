@@ -664,6 +664,8 @@ export default function DashboardPage() {
         {dashboardId === '1' && (
           <div className="contact">
             Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
+            <br />
+            사업자 등록번호: 858-22-02317
           </div>
         )}
 
