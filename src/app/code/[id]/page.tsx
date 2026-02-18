@@ -160,6 +160,16 @@ export default function CodePage() {
     setFormData({ title: '', content: '' })
   }
 
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    if (!showModal) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showModal])
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -230,13 +240,13 @@ export default function CodePage() {
       </div>
 
       {/* Modal */}
-      <div className={`modal ${showModal ? 'show' : ''}`}>
+      <div className={`modal ${showModal ? 'show' : ''}`} role="dialog" aria-modal="true">
         <div className="modal-content modal-content-wide">
           <div className="modal-header">
             <h3 className="modal-title">
               {editingId ? '코드 수정' : '새 코드 추가'}
             </h3>
-            <span className="close" onClick={closeModal}>&times;</span>
+            <button type="button" className="close" onClick={closeModal} aria-label="닫기">&times;</button>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">

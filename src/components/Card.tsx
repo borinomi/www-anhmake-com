@@ -52,13 +52,15 @@ export default function Card({ card, isAuthorized, onClick, onEdit }: CardProps)
         </div>
       )}
       {isAuthorized && (
-        <div 
-          className="card-menu" 
+        <button
+          type="button"
+          className="card-menu"
           onClick={handleMenuClick}
           title="카드 메뉴"
+          aria-label="카드 메뉴"
         >
           ⋯
-        </div>
+        </button>
       )}
       <div className="tool-content">
         <div className="tool-icon">

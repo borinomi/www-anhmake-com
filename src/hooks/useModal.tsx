@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 interface Card {
   id: string
@@ -156,9 +156,19 @@ export const useModal = (options: UseModalOptions = {}) => {
     }
   }, [modalType, modalData, options, closeModal])
 
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    if (!showModal) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showModal, closeModal])
+
   // Modal JSX 컴포넌트
   const Modal = showModal ? (
-    <div className="modal show">
+    <div className="modal show" role="dialog" aria-modal="true">
       <div className="modal-content">
         <div className="modal-header">
           <h3 className="modal-title">
@@ -167,7 +177,7 @@ export const useModal = (options: UseModalOptions = {}) => {
             {modalType === 'addCard' && '카드 추가'}
             {modalType === 'editCard' && '카드 수정'}
           </h3>
-          <span className="close" onClick={closeModal}>&times;</span>
+          <button type="button" className="close" onClick={closeModal} aria-label="닫기">&times;</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-fields">
