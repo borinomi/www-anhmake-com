@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: string
@@ -18,6 +19,8 @@ interface HeaderProps {
 }
 
 export default function Header({ user, onLogin, onLogout }: HeaderProps) {
+  const router = useRouter()
+
   return (
     <div className="header">
       <div className="header-main">
@@ -41,7 +44,7 @@ export default function Header({ user, onLogin, onLogout }: HeaderProps) {
               {user.role === 'admin' && (
                 <button 
                   className="admin-btn" 
-                  onClick={() => window.location.href = '/admin/users'}
+                  onClick={() => router.push('/admin/users')}
                 >
                   회원관리
                 </button>

@@ -30,6 +30,7 @@ export default function CodePage() {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState({ title: '', content: '' })
+  const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const cardId = params.id as string
 
@@ -142,17 +143,11 @@ export default function CodePage() {
     }
   }
 
-  async function copyCode(content: string, button: HTMLButtonElement) {
+  async function copyCode(content: string, snippetId: number) {
     try {
       await navigator.clipboard.writeText(content)
-      const originalText = button.textContent
-      button.textContent = 'Copied!'
-      button.classList.add('copied')
-
-      setTimeout(() => {
-        button.textContent = originalText
-        button.classList.remove('copied')
-      }, 2000)
+      setCopiedId(snippetId)
+      setTimeout(() => setCopiedId(null), 2000)
     } catch (error) {
       console.error('Failed to copy:', error)
       alert('클립보드 복사에 실패했습니다.')
@@ -204,10 +199,10 @@ export default function CodePage() {
                 <span>{snippet.title}</span>
                 <div className="card-actions">
                   <button
-                    className="copy-btn"
-                    onClick={(e) => copyCode(snippet.content, e.target as HTMLButtonElement)}
+                    className={`copy-btn${copiedId === snippet.id ? ' copied' : ''}`}
+                    onClick={() => copyCode(snippet.content, snippet.id)}
                   >
-                    Copy
+                    {copiedId === snippet.id ? 'Copied!' : 'Copy'}
                   </button>
                   {isAuthorized && (
                     <>

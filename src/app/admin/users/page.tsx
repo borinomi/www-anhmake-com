@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -17,6 +18,7 @@ interface User {
 }
 
 export default function AdminUsersPage() {
+  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -35,19 +37,19 @@ export default function AdminUsersPage() {
         // admin이 아니면 메인 페이지로 리디렉트
         if (user.role !== 'admin') {
           alert('관리자 권한이 필요합니다.')
-          window.location.href = '/'
+          router.push('/')
           return false
         }
         return true
       } else {
         alert('로그인이 필요합니다.')
-        window.location.href = '/'
+        router.push('/')
         return false
       }
     } catch (error) {
       console.error('Auth check error:', error)
       alert('인증 확인 중 오류가 발생했습니다.')
-      window.location.href = '/'
+      router.push('/')
       return false
     }
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 interface Card {
   id: string
@@ -49,6 +49,7 @@ export const useModal = (options: UseModalOptions = {}) => {
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState<ModalType | null>(null)
   const [modalData, setModalData] = useState<ModalData | null>(null)
+  const [showIconUrl, setShowIconUrl] = useState(false)
 
   const handleAddCard = useCallback((sectionId: string) => {
     if (!options.isAdmin) return
@@ -85,6 +86,7 @@ export const useModal = (options: UseModalOptions = {}) => {
     setShowModal(false)
     setModalType(null)
     setModalData(null)
+    setShowIconUrl(false)
   }, [])
 
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
@@ -235,12 +237,7 @@ export const useModal = (options: UseModalOptions = {}) => {
                     className="form-select" 
                     defaultValue={modalData?.icon || 'logo.png'}
                     onChange={(e) => {
-                      const urlField = document.getElementById('iconUrlField') as HTMLDivElement
-                      if (e.target.value === 'web-link') {
-                        urlField.style.display = 'block'
-                      } else {
-                        urlField.style.display = 'none'
-                      }
+                      setShowIconUrl(e.target.value === 'web-link')
                     }}
                   >
                     {options.availableIcons?.map(iconName => (
@@ -251,10 +248,9 @@ export const useModal = (options: UseModalOptions = {}) => {
                     <option value="web-link">🌐 웹 링크로 아이콘 사용</option>
                   </select>
                 </div>
-                <div 
-                  className="form-group" 
-                  id="iconUrlField" 
-                  style={{ display: (modalData?.icon && modalData.icon.startsWith('http')) ? 'block' : 'none' }}
+                <div
+                  className="form-group"
+                  style={{ display: showIconUrl || (modalData?.icon && modalData.icon.startsWith('http')) ? 'block' : 'none' }}
                 >
                   <label className="form-label" htmlFor="cardIconUrl">아이콘 이미지 URL</label>
                   <input 

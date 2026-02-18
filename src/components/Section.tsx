@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import Card from './Card'
 
 interface Card {
@@ -27,13 +28,15 @@ interface SectionProps {
   onEditCard: (cardId: string, sectionId: string) => void
 }
 
-export default function Section({ 
-  section, 
-  isAuthorized, 
-  onAddCard, 
-  onEditSection, 
-  onEditCard 
+export default function Section({
+  section,
+  isAuthorized,
+  onAddCard,
+  onEditSection,
+  onEditCard
 }: SectionProps) {
+  const router = useRouter()
+
   const handleCardClick = (card: Card) => {
     switch(card.type) {
       case 'url':
@@ -42,7 +45,7 @@ export default function Section({
         }
         break
       case 'dashboard':
-        window.location.href = `/dashboard/${card.id}`
+        router.push(`/dashboard/${card.id}`)
         break
       case 'code':
         window.open(`/code/${card.id}`, '_blank')
