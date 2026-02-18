@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import Head from 'next/head'
 import Header from '@/components/Header'
 import Section from '@/components/Section'
 import SkeletonLoader from '@/components/SkeletonLoader'
@@ -49,12 +48,12 @@ export default function DashboardPage() {
   const [sections, setSections] = useState<Section[]>([])
   const [allSections, setAllSections] = useState<Array<{id: string, title: string, dashboard_title: string}>>([])
   const [loading, setLoading] = useState(true)
-  
+
   // 인증 및 아이콘 상태
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [availableIcons, setAvailableIcons] = useState<string[]>(['logo.png'])
-  
+
 
 
   const dashboardId = params.id as string
@@ -81,13 +80,13 @@ export default function DashboardPage() {
         icon: data.icon!,
         visibility: data.visibility
       }
-      
-      setSections(prev => prev.map(section => 
-        section.id === data.sectionId 
+
+      setSections(prev => prev.map(section =>
+        section.id === data.sectionId
           ? { ...section, cards: [...section.cards, tempCard] }
           : section
       ))
-      
+
       // 백그라운드에서 실제 생성
       try {
         const response = await fetch('/api/cards', {
@@ -106,8 +105,8 @@ export default function DashboardPage() {
         if (response.ok) {
           loadDashboard()
         } else {
-          setSections(prev => prev.map(section => 
-            section.id === data.sectionId 
+          setSections(prev => prev.map(section =>
+            section.id === data.sectionId
               ? { ...section, cards: section.cards.filter(c => c.id !== tempCard.id) }
               : section
           ))
@@ -141,13 +140,13 @@ export default function DashboardPage() {
       // 낙관적 업데이트: 즉시 UI에서 카드 제거
       const cardToDelete = data.id!
       const sectionId = data.sectionId!
-      
-      setSections(prev => prev.map(section => 
-        section.id === sectionId 
+
+      setSections(prev => prev.map(section =>
+        section.id === sectionId
           ? { ...section, cards: section.cards.filter(c => c.id !== cardToDelete) }
           : section
       ))
-      
+
       try {
         const response = await fetch('/api/cards', {
           method: 'DELETE',
@@ -256,7 +255,7 @@ export default function DashboardPage() {
       } catch (bulkError) {
         console.log('Dashboard bulk API failed, falling back:', bulkError)
       }
-      
+
       // 2차: 기존 방식 폴백
       // 병렬로 대시보드 정보와 섹션 정보 로딩
       const [cardResponse, sectionsResponse] = await Promise.all([
@@ -272,7 +271,7 @@ export default function DashboardPage() {
 
       if (sectionsResponse.ok) {
         const sectionsData = await sectionsResponse.json()
-        
+
         // 병렬로 섹션별 카드 로딩 (기존 Promise.all 유지)
         const sectionsWithCards = await Promise.all(
           sectionsData.map(async (section: { id: string; title: string }) => {
@@ -284,7 +283,7 @@ export default function DashboardPage() {
             }
           })
         )
-        
+
         setSections(sectionsWithCards)
       }
     } catch {
@@ -323,354 +322,80 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      <Head>
-        <title>{pageData ? `${pageData.title} - anhmake.com` : 'anhmake.com'}</title>
-        <meta property="og:title" content={pageData ? `${pageData.title} - anhmake.com` : 'anhmake.com'} />
-        <meta property="og:description" content={pageData?.description || 'Dashboard page'} />
-      </Head>
-      <style jsx global>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
+    <div className="container">
+      {dashboardId !== '1' && (
+        <Link href="/dashboard/1" className="back-btn">← 메인으로</Link>
+      )}
 
-        body {
-          font-family: 'Inter', sans-serif;
-          background-image: url("/chalk-bg.jpg");
-          background-size: cover;
-          background-attachment: fixed;
-          background-position: center;
-          background-repeat: no-repeat;
-          color: #1e293b;
-          min-height: 100vh;
-          padding: 2rem;
-        }
-
-        .container {
-          width: 100%;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: rgba(0, 0, 0, 0.3);
-          color: #ffffff;
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 2rem;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          margin-bottom: 2rem;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .back-btn:hover {
-          background: rgba(0, 0, 0, 0.5);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .loading-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .page-header {
-          display: flex;
-          align-items: flex-start;
-          gap: 1rem;
-          margin-bottom: 2rem;
-          width: fit-content;
-        }
-
-        .page-logo {
-          width: 60px;
-          height: 60px;
-          flex-shrink: 0;
-        }
-
-        .page-header-text {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .page-header-line {
-          color: #ffffff;
-          font-weight: 600;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        .page-header-line:first-child {
-          font-size: 1.5rem;
-          font-weight: 700;
-        }
-
-        .page-header-line:nth-child(2) {
-          font-size: 1rem;
-        }
-
-        .empty-dashboard {
-          text-align: center;
-          color: #64748b;
-          margin-top: 2rem;
-        }
-
-        .btn-add-section,
-        .btn-section-action {
-          background: rgba(0, 0, 0, 0.3);
-          border: none;
-          border-radius: 2rem;
-          width: auto;
-          padding: 0.8rem 1.5rem;
-          color: #ffffff;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-top: 1rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-add-section:hover,
-        .btn-section-action:hover {
-          background: rgba(0, 0, 0, 0.5);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .contact {
-          text-align: center;
-          margin-top: 2rem;
-          color: #ffffff;
-          font-weight: 500;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .contact a {
-          color: #60a5fa;
-          text-decoration: none;
-        }
-
-        .contact a:hover {
-          text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-          body {
-            padding: 1rem;
-          }
-        }
-
-        /* Modal Styles */
-        .modal {
-          position: fixed;
-          z-index: 1000;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(5px);
-          overflow-y: auto;
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          padding: 3rem 1rem;
-        }
-
-        .modal-content {
-          background: white;
-          margin: 0;
-          padding: 1.5rem;
-          border-radius: 1rem;
-          width: 100%;
-          max-width: 500px;
-          max-height: calc(100vh - 4rem);
-          position: relative;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-          overflow-y: auto;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-          padding-bottom: 0.75rem;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .modal-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .close {
-          font-size: 1.5rem;
-          font-weight: bold;
-          color: #64748b;
-          cursor: pointer;
-          transition: color 0.3s;
-        }
-
-        .close:hover {
-          color: #1e293b;
-        }
-
-        .form-group {
-          margin-bottom: 1rem;
-        }
-
-        .form-label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .form-input, .form-select, .form-textarea {
-          width: 100%;
-          padding: 0.75rem;
-          border: 2px solid #e5e7eb;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          transition: border-color 0.3s;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-          outline: none;
-          border-color: #4338ca;
-        }
-
-        .form-textarea {
-          resize: vertical;
-          min-height: 100px;
-        }
-
-        .btn-primary {
-          background: #4338ca;
-          color: white;
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 0.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-
-        .btn-primary:hover {
-          background: #3730a3;
-          transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-          background: #6b7280;
-          color: white;
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 0.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-
-        .btn-secondary:hover {
-          background: #4b5563;
-          transform: translateY(-2px);
-        }
-      `}</style>
-      
-      <div className="container">
-        {dashboardId !== '1' && (
-          <Link href="/dashboard/1" className="back-btn">← 메인으로</Link>
-        )}
-        
-        {dashboardId === '1' ? (
-          <Header 
-            user={currentUser}
-            onLogin={() => {
-              window.location.href = '/api/auth/login'
-            }}
-            onLogout={async () => {
-              try {
-                await fetch('/api/auth/logout', { method: 'POST' })
-                setCurrentUser(null)
-                setIsAdmin(false)
-              } catch (error) {
-                console.error('Logout error:', error)
-              }
-            }}
+      {dashboardId === '1' ? (
+        <Header
+          user={currentUser}
+          onLogin={() => {
+            window.location.href = '/api/auth/login'
+          }}
+          onLogout={async () => {
+            try {
+              await fetch('/api/auth/logout', { method: 'POST' })
+              setCurrentUser(null)
+              setIsAdmin(false)
+            } catch (error) {
+              console.error('Logout error:', error)
+            }
+          }}
+        />
+      ) : (
+        <div className="page-header">
+          <Image
+            src={pageData.icon ?
+              (pageData.icon.startsWith('http') ? pageData.icon : `/icon/${pageData.icon}`)
+              : '/logo.png'}
+            alt="Dashboard"
+            width={60}
+            height={60}
+            className="page-logo"
           />
-        ) : (
-          <div className="page-header">
-            <Image 
-              src={pageData.icon ? 
-                (pageData.icon.startsWith('http') ? pageData.icon : `/icon/${pageData.icon}`) 
-                : '/logo.png'} 
-              alt="Dashboard" 
-              width={60}
-              height={60}
-              className="page-logo"
-            />
-            <div className="page-header-text">
-              <div className="page-header-line">{pageData.title}</div>
-              <div className="page-header-line">{pageData.description}</div>
-            </div>
+          <div className="page-header-text">
+            <div className="page-header-line">{pageData.title}</div>
+            <div className="page-header-line">{pageData.description}</div>
           </div>
-        )}
-
-        <div id="sectionsContainer">
-          {sections.map(section => (
-            <Section
-              key={section.id}
-              section={section}
-              isAuthorized={isAdmin}
-              onAddCard={handleAddCard}
-              onEditSection={handleEditSection}
-              onEditCard={(cardId, sectionId) => handleEditCard(cardId, sectionId, sections)}
-            />
-          ))}
         </div>
+      )}
 
-        {/* Add Section Button (only for admin users) */}
-        {isAdmin && (
-          <div id="addSectionContainer" style={{ marginBottom: '2rem' }}>
-            <button 
-              className="btn-section-action" 
-              onClick={handleAddSection}
-              title="섹션 추가" 
-              style={{ 
-                width: 'auto', 
-                padding: '0.8rem 1.5rem', 
-                borderRadius: '2rem' 
-              }}
-            >
-              + 섹션 추가
-            </button>
-          </div>
-        )}
-
-        {dashboardId === '1' && (
-          <div className="contact">
-            Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
-            <br />
-            사업자 등록번호: 858-22-02317
-          </div>
-        )}
-
-        {Modal}
+      <div id="sectionsContainer">
+        {sections.map(section => (
+          <Section
+            key={section.id}
+            section={section}
+            isAuthorized={isAdmin}
+            onAddCard={handleAddCard}
+            onEditSection={handleEditSection}
+            onEditCard={(cardId, sectionId) => handleEditCard(cardId, sectionId, sections)}
+          />
+        ))}
       </div>
-    </>
+
+      {/* Add Section Button (only for admin users) */}
+      {isAdmin && (
+        <div id="addSectionContainer" style={{ marginBottom: '2rem' }}>
+          <button
+            className="btn-add-section"
+            onClick={handleAddSection}
+            title="섹션 추가"
+          >
+            + 섹션 추가
+          </button>
+        </div>
+      )}
+
+      {dashboardId === '1' && (
+        <div className="contact">
+          Contact: <a href="mailto:contact@anhmake.com">contact@anhmake.com</a>
+          <br />
+          사업자 등록번호: 858-22-02317
+        </div>
+      )}
+
+      {Modal}
+    </div>
   )
 }

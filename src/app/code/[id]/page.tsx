@@ -76,7 +76,7 @@ export default function CodePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    
+
     const data = {
       card_id: cardId,
       title: formData.title.trim(),
@@ -148,7 +148,7 @@ export default function CodePage() {
       const originalText = button.textContent
       button.textContent = 'Copied!'
       button.classList.add('copied')
-      
+
       setTimeout(() => {
         button.textContent = originalText
         button.classList.remove('copied')
@@ -175,388 +175,12 @@ export default function CodePage() {
 
   return (
     <>
-      <style jsx global>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: 'Inter', sans-serif;
-          background-image: url("/chalk-bg.jpg");
-          background-size: cover;
-          background-attachment: fixed;
-          background-position: center;
-          background-repeat: no-repeat;
-          color: #1e293b;
-          min-height: 100vh;
-          padding: 2rem;
-        }
-
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .page-header {
-          display: flex;
-          align-items: flex-start;
-          gap: 1rem;
-          margin-bottom: 2rem;
-          width: fit-content;
-        }
-
-        .page-logo {
-          width: 60px;
-          height: 60px;
-          flex-shrink: 0;
-        }
-
-        .page-header-text {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .page-header-line {
-          color: #ffffff;
-          font-weight: 600;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        .page-header-line:first-child {
-          font-size: 1.5rem;
-          font-weight: 700;
-        }
-
-        .page-header-line:nth-child(2) {
-          font-size: 1rem;
-        }
-
-        .back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: rgba(0, 0, 0, 0.3);
-          color: #ffffff;
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 2rem;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          margin-bottom: 2rem;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .back-btn:hover {
-          background: rgba(0, 0, 0, 0.5);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .add-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.5rem;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 0.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          margin-bottom: 2rem;
-          transition: all 0.3s ease;
-        }
-
-        .add-btn:hover {
-          background: #2563eb;
-          transform: translateY(-1px);
-        }
-
-        .resources-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-          gap: 2rem;
-          margin-bottom: 2rem;
-        }
-
-        .resource-card {
-          background: rgba(255, 255, 255, 0.95);
-          border: 2px solid rgba(226, 232, 240, 0.5);
-          border-radius: 1rem;
-          padding: 2rem;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-          transition: all 0.3s ease;
-          backdrop-filter: blur(10px);
-        }
-
-        .resource-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          border-color: #3b82f6;
-        }
-
-        .resource-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          margin-bottom: 1rem;
-          color: #1e293b;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .card-actions {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .edit-btn, .delete-btn {
-          padding: 0.5rem;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .edit-btn {
-          background: #f59e0b;
-          color: white;
-        }
-
-        .edit-btn:hover {
-          background: #d97706;
-        }
-
-        .delete-btn {
-          background: #ef4444;
-          color: white;
-        }
-
-        .delete-btn:hover {
-          background: #dc2626;
-        }
-
-        .copy-btn {
-          padding: 0.5rem 1rem;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .copy-btn:hover {
-          background: #2563eb;
-        }
-
-        .copy-btn.copied {
-          background: #10b981;
-        }
-
-        .resource-content {
-          background: #e2e8f0;
-          border: 1px solid #e2e8f0;
-          border-radius: 0.5rem;
-          padding: 1.5rem;
-          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          white-space: pre-wrap;
-          overflow-x: auto;
-          max-height: 300px;
-          overflow-y: auto;
-        }
-
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 1000;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(5px);
-        }
-
-        .modal.show {
-          display: block;
-        }
-
-        .modal-content {
-          background-color: #fefefe;
-          margin: 5% auto;
-          padding: 0;
-          border-radius: 1rem;
-          width: 90%;
-          max-width: 600px;
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #e2e8f0;
-          padding: 2rem 2rem 1rem;
-        }
-
-        .modal-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #1e293b;
-          margin: 0;
-        }
-
-        .close {
-          font-size: 1.5rem;
-          font-weight: bold;
-          color: #64748b;
-          cursor: pointer;
-          transition: color 0.3s;
-          line-height: 1;
-          padding: 0;
-          background: none;
-          border: none;
-        }
-
-        .close:hover {
-          color: #1e293b;
-        }
-
-        .modal form {
-          padding: 2rem;
-        }
-
-        .form-group {
-          margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .form-input, .form-textarea {
-          width: 100%;
-          padding: 0.75rem;
-          border: 2px solid #e5e7eb;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          transition: border-color 0.2s;
-        }
-
-        .form-textarea {
-          min-height: 200px;
-          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-          resize: vertical;
-        }
-
-        .form-input:focus, .form-textarea:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-actions {
-          display: flex;
-          gap: 1rem;
-          justify-content: flex-end;
-          margin-top: 2rem;
-        }
-
-        .btn-primary, .btn-secondary {
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 0.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-
-        .btn-primary {
-          background: #4338ca;
-          color: white;
-          margin-left: 0.5rem;
-        }
-
-        .btn-primary:hover {
-          background: #3730a3;
-          transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-          background: #6b7280;
-          color: white;
-        }
-
-        .btn-secondary:hover {
-          background: #4b5563;
-          transform: translateY(-2px);
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 4rem 2rem;
-          color: #ffffff;
-        }
-
-        .empty-state h3 {
-          font-size: 1.5rem;
-          margin-bottom: 1rem;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        .empty-state p {
-          font-size: 1rem;
-          opacity: 0.8;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        .loading-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        @media (max-width: 768px) {
-          .resources-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .modal-content {
-            width: 95%;
-            margin: 10% auto;
-          }
-          
-          .resource-title {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-          }
-        }
-      `}</style>
-      
       <div className="container">
         <Link href="/" className="back-btn">← 메인으로</Link>
         <div className="page-header">
-          <Image 
-            src={cardData?.icon ? `/icon/${cardData.icon}` : '/logo.png'} 
-            alt="Code" 
+          <Image
+            src={cardData?.icon ? `/icon/${cardData.icon}` : '/logo.png'}
+            alt="Code"
             width={60}
             height={60}
             className="page-logo"
@@ -579,8 +203,8 @@ export default function CodePage() {
               <div className="resource-title">
                 <span>{snippet.title}</span>
                 <div className="card-actions">
-                  <button 
-                    className="copy-btn" 
+                  <button
+                    className="copy-btn"
                     onClick={(e) => copyCode(snippet.content, e.target as HTMLButtonElement)}
                   >
                     Copy
@@ -612,7 +236,7 @@ export default function CodePage() {
 
       {/* Modal */}
       <div className={`modal ${showModal ? 'show' : ''}`}>
-        <div className="modal-content">
+        <div className="modal-content modal-content-wide">
           <div className="modal-header">
             <h3 className="modal-title">
               {editingId ? '코드 수정' : '새 코드 추가'}
@@ -622,29 +246,29 @@ export default function CodePage() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label" htmlFor="codeTitle">제목</label>
-              <input 
-                type="text" 
-                id="codeTitle" 
-                className="form-input" 
-                placeholder="코드 제목을 입력하세요" 
+              <input
+                type="text"
+                id="codeTitle"
+                className="form-input"
+                placeholder="코드 제목을 입력하세요"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label" htmlFor="codeContent">코드</label>
-              <textarea 
-                id="codeContent" 
-                className="form-textarea" 
-                placeholder="코드를 입력하세요..." 
+              <textarea
+                id="codeContent"
+                className="form-textarea code-textarea"
+                placeholder="코드를 입력하세요..."
                 required
                 value={formData.content}
                 onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
               />
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button type="button" id="deleteCodeBtn" className="btn-secondary" style={{ background: '#dc2626', display: editingId ? 'block' : 'none' }} onClick={() => editingId && deleteCode(editingId)}>삭제</button>
               <div>

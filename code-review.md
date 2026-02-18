@@ -122,8 +122,9 @@ body 스타일, `.container`, `.modal`, `.form-group` 등이 4~5곳에서 거의
 
 | 순위 | 작업 | 난이도 | 상태 |
 |---|---|---|---|
-| 1 | API 라우트에 인증 미들웨어 추가 | 중 | 완료 |
-| 2 | `middleware.ts` 추가 (세션 갱신) | 하 | 대기 |
+| 1 | API 라우트에 인증 미들웨어 추가 + Next.js 16 업그레이드 | 중 | 완료 |
+| 1.2 | XSS URL 검증 추가 | 하 | 완료 |
+| 2 | `middleware.ts` 추가 (세션 갱신) | 하 | 완료 |
 | 3 | 공통 타입 파일 `src/types/` 생성 | 하 | 대기 |
 | 4 | CSS 중복 제거 → `globals.css`로 통합 또는 Tailwind 활용 | 중 | 대기 |
 | 5 | `<Head>` 제거 → `generateMetadata` 사용 | 하 | 대기 |

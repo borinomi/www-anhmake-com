@@ -156,7 +156,7 @@ export const useModal = (options: UseModalOptions = {}) => {
 
   // Modal JSX 컴포넌트
   const Modal = showModal ? (
-    <div className="modal" style={{ display: 'block' }}>
+    <div className="modal show">
       <div className="modal-content">
         <div className="modal-header">
           <h3 className="modal-title">

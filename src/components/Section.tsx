@@ -37,7 +37,7 @@ export default function Section({
   const handleCardClick = (card: Card) => {
     switch(card.type) {
       case 'url':
-        if (card.url) {
+        if (card.url && /^https?:\/\//.test(card.url)) {
           window.open(card.url, '_blank')
         }
         break
