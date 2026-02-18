@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { requireAdmin } from '@/utils/auth-guard'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -9,6 +10,9 @@ interface RouteContext {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const params = await context.params
     const id = params.id
@@ -58,6 +62,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const params = await context.params
     const id = params.id

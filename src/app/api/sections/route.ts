@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { requireAdmin } from '@/utils/auth-guard'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -45,10 +46,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const body = await request.json()
     const { id, title, section_order, parent_card_id } = body
-    
+
     if (!id || !title) {
       return new Response(JSON.stringify({ error: 'id and title are required' }), {
         status: 400,
@@ -90,10 +94,13 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const body = await request.json()
     const { id, title, section_order, parent_card_id } = body
-    
+
     if (!id || !title) {
       return new Response(JSON.stringify({ error: 'id and title are required' }), {
         status: 400,
@@ -135,10 +142,13 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const body = await request.json()
     const { id } = body
-    
+
     if (!id) {
       return new Response(JSON.stringify({ error: 'id is required' }), {
         status: 400,

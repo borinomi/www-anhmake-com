@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { requireAdmin } from '@/utils/auth-guard'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -45,6 +46,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin()
+    if (!auth.authorized) return auth.response
+
     const supabase = await createClient()
     const body = await request.json()
     const { card_id, title, content } = body
